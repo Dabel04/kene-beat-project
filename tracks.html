@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>All Tracks</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: #111;
+      color: #fff;
+      padding: 30px;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .tracklist {
+      max-width: 800px;
+      margin: auto;
+      background: #1a1a1a;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+    }
+    .track {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid #333;
+    }
+    .track:last-child {
+      border-bottom: none;
+    }
+    .btn-play, .btn-buy {
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      margin-left: 10px;
+    }
+    .btn-play {
+      background: #ff4d4d;
+      color: #fff;
+      border: none;
+    }
+    .btn-buy {
+      border: 1px solid #ff4d4d;
+      background: transparent;
+      color: #ff4d4d;
+    }
+    .btn-buy:hover {
+      background: #ff4d4d;
+      color: #fff;
+    }
+    .actions {
+      display: flex;
+      align-items: center;
+    }
+    a.back {
+      display: block;
+      text-align: center;
+      margin-top: 20px;
+      color: #ff4d4d;
+      text-decoration: none;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>All Tracks</h1>
+  <div class="tracklist">
+    <div class="track">
+      <span>Track One</span>
+      <div class="actions">
+        <button class="btn-play"><i class="fas fa-play"></i></button>
+        <button class="btn-buy"><i class="fas fa-shopping-cart"></i></button>
+        <audio src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio>
+      </div>
+    </div>
+    <div class="track">
+      <span>Track Two</span>
+      <div class="actions">
+        <button class="btn-play"><i class="fas fa-play"></i></button>
+        <button class="btn-buy"><i class="fas fa-shopping-cart"></i></button>
+        <audio src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"></audio>
+      </div>
+    </div>
+    <div class="track">
+      <span>Track Three</span>
+      <div class="actions">
+        <button class="btn-play"><i class="fas fa-play"></i></button>
+        <button class="btn-buy"><i class="fas fa-shopping-cart"></i></button>
+        <audio src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"></audio>
+      </div>
+    </div>
+    <!-- Add more tracks here -->
+  </div>
+
+  <a href="ai.html" class="back">← Back to Home</a>
+
+  <script>
+    const playButtons = document.querySelectorAll('.btn-play');
+    let currentAudio = null;
+    let currentButton = null;
+
+    playButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const track = button.closest('.track');
+        const audio = track.querySelector('audio');
+
+        if (currentAudio === audio) {
+          if (audio.paused) {
+            audio.play();
+            button.innerHTML = '<i class="fas fa-pause"></i>';
+          } else {
+            audio.pause();
+            button.innerHTML = '<i class="fas fa-play"></i>';
+          }
+        } else {
+          if (currentAudio) {
+            currentAudio.pause();
+            currentButton.innerHTML = '<i class="fas fa-play"></i>';
+          }
+          audio.play();
+          button.innerHTML = '<i class="fas fa-pause"></i>';
+          currentAudio = audio;
+          currentButton = button;
+        }
+      });
+    });
+  </script>
+</body>
+</html>

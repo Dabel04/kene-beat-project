@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Music Producer - Card Sliders</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background-color: #111;
+      color: #fff;
+    }
+
+    .section-box {
+      margin: 40px auto;
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 15px;
+      padding: 20px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    }
+
+    .section-small {
+      max-width: 800px;
+    }
+
+    .section-wide {
+      max-width: 1200px;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .section-header h2 {
+      margin: 0;
+    }
+
+    .btn-see-more {
+      background: transparent;
+      border: 1px solid #ff4d4d;
+      color: #ff4d4d;
+      padding: 8px 16px;
+      border-radius: 30px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .btn-see-more:hover {
+      background: #ff4d4d;
+      color: #fff;
+    }
+
+    .slider-container {
+      display: flex;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      gap: 20px;
+      padding: 10px 5px;
+    }
+
+    .slider-container::-webkit-scrollbar {
+      display: none;
+    }
+
+    .card {
+      flex: 0 0 auto;
+      width: 220px;
+      background: #222;
+      border-radius: 15px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      scroll-snap-align: start;
+      transition: transform 0.3s;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .card:hover {
+      transform: translateY(-6px);
+    }
+
+    .card img {
+      width: 100%;
+      height: 140px;
+      object-fit: cover;
+      border-top-left-radius: 15px;
+      border-top-right-radius: 15px;
+    }
+
+    .card-body {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 15px;
+    }
+
+    .card h5 {
+      margin: 0 0 15px 0;
+      text-align: center;
+    }
+
+    /* Button row */
+    .btn-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .btn-play, .btn-buy {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: 0.3s;
+      font-size: 18px;
+    }
+
+    .btn-play {
+      border: none;
+      background: #ff4d4d;
+      color: #fff;
+    }
+
+    .btn-play:hover {
+      background: #e60000;
+    }
+
+    .btn-buy {
+      border: 1px solid #ff4d4d;
+      background: transparent;
+      color: #ff4d4d;
+    }
+
+    .btn-buy:hover {
+      background: #ff4d4d;
+      color: #fff;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .section-small, .section-wide {
+        max-width: 95%;
+      }
+      .card {
+        width: 180px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .card {
+        width: 150px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Small Section -->
+  <div class="section-box section-small">
+    <div class="section-header">
+      <h2>Latest Tracks</h2>
+      <a href="tracks.html" class="btn-see-more">See More</a>
+    </div>
+    <div class="slider-container">
+
+      <!-- 8 cards -->
+      <div class="card">
+        <img src="https://via.placeholder.com/400x250" alt="Track 1">
+        <div class="card-body">
+          <h5>Track One</h5>
+          <div class="btn-row">
+            <button class="btn-play"><i class="fas fa-play"></i></button>
+            <button class="btn-buy"><i class="fas fa-shopping-cart"></i></button>
+          </div>
+          <audio src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio>
+        </div>
+      </div>
+
+      <div class="card">
+        <img src="https://via.placeholder.com/400x250" alt="Track 2">
+        <div class="card-body">
+          <h5>Track Two</h5>
+          <div class="btn-row">
+            <button class="btn-play"><i class="fas fa-play"></i></button>
+            <button class="btn-buy"><i class="fas fa-shopping-cart"></i></button>
+          </div>
+          <audio src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"></audio>
+        </div>
+      </div>
+
+      <div class="card"><img src="https://via.placeholder.com/400x250"><div class="card-body"><h5>Track Three</h5><div class="btn-row"><button class="btn-play"><i class="fas fa-play"></i></button><button class="btn-buy"><i class="fas fa-shopping-cart"></i></button></div><audio src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"></audio></div></div>
+      <div class="card"><img src="https://via.placeholder.com/400x250"><div class="card-body"><h5>Track Four</h5><div class="btn-row"><button class="btn-play"><i class="fas fa-play"></i></button><button class="btn-buy"><i class="fas fa-shopping-cart"></i></button></div><audio src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"></audio></div></div>
+      <div class="card"><img src="https://via.placeholder.com/400x250"><div class="card-body"><h5>Track Five</h5><div class="btn-row"><button class="btn-play"><i class="fas fa-play"></i></button><button class="btn-buy"><i class="fas fa-shopping-cart"></i></button></div><audio src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3"></audio></div></div>
+      <div class="card"><img src="https://via.placeholder.com/400x250"><div class="card-body"><h5>Track Six</h5><div class="btn-row"><button class="btn-play"><i class="fas fa-play"></i></button><button class="btn-buy"><i class="fas fa-shopping-cart"></i></button></div><audio src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3"></audio></div></div>
+      <div class="card"><img src="https://via.placeholder.com/400x250"><div class="card-body"><h5>Track Seven</h5><div class="btn-row"><button class="btn-play"><i class="fas fa-play"></i></button><button class="btn-buy"><i class="fas fa-shopping-cart"></i></button></div><audio src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3"></audio></div></div>
+      <div class="card"><img src="https://via.placeholder.com/400x250"><div class="card-body"><h5>Track Eight</h5><div class="btn-row"><button class="btn-play"><i class="fas fa-play"></i></button><button class="btn-buy"><i class="fas fa-shopping-cart"></i></button></div><audio src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3"></audio></div></div>
+    </div>
+  </div>
+
+  <!-- Wide Section -->
+  <div class="section-box section-wide">
+    <div class="section-header">
+      <h2>Popular Albums</h2>
+      <button class="btn-see-more">See More</button>
+    </div>
+    <div class="slider-container">
+
+      <!-- 8 more cards -->
+      <div class="card"><img src="https://via.placeholder.com/400x250"><div class="card-body"><h5>Album One</h5><div class="btn-row"><button class="btn-play"><i class="fas fa-play"></i></button><button class="btn-buy"><i class="fas fa-shopping-cart"></i></button></div><audio src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3"></audio></div></div>
+      <div class="card"><img src="https://via.placeholder.com/400x250"><div class="card-body"><h5>Album Two</h5><div class="btn-row"><button class="btn-play"><i class="fas fa-play"></i></button><button class="btn-buy"><i class="fas fa-shopping-cart"></i></button></div><audio src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3"></audio></div></div>
+      <div class="card"><img src="https://via.placeholder.com/400x250"><div class="card-body"><h5>Album Three</h5><div class="btn-row"><button class="btn-play"><i class="fas fa-play"></i></button><button class="btn-buy"><i class="fas fa-shopping-cart"></i></button></div><audio src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio></div></div>
+      <div class="card"><img src="https://via.placeholder.com/400x250"><div class="card-body"><h5>Album Four</h5><div class="btn-row"><button class="btn-play"><i class="fas fa-play"></i></button><button class="btn-buy"><i class="fas fa-shopping-cart"></i></button></div><audio src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"></audio></div></div>
+      <div class="card"><img src="https://via.placeholder.com/400x250"><div class="card-body"><h5>Album Five</h5><div class="btn-row"><button class="btn-play"><i class="fas fa-play"></i></button><button class="btn-buy"><i class="fas fa-shopping-cart"></i></button></div><audio src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"></audio></div></div>
+      <div class="card"><img src="https://via.placeholder.com/400x250"><div class="card-body"><h5>Album Six</h5><div class="btn-row"><button class="btn-play"><i class="fas fa-play"></i></button><button class="btn-buy"><i class="fas fa-shopping-cart"></i></button></div><audio src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"></audio></div></div>
+      <div class="card"><img src="https://via.placeholder.com/400x250"><div class="card-body"><h5>Album Seven</h5><div class="btn-row"><button class="btn-play"><i class="fas fa-play"></i></button><button class="btn-buy"><i class="fas fa-shopping-cart"></i></button></div><audio src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3"></audio></div></div>
+      <div class="card"><img src="https://via.placeholder.com/400x250"><div class="card-body"><h5>Album Eight</h5><div class="btn-row"><button class="btn-play"><i class="fas fa-play"></i></button><button class="btn-buy"><i class="fas fa-shopping-cart"></i></button></div><audio src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3"></audio></div></div>
+    </div>
+  </div>
+
+  <script>
+    const playButtons = document.querySelectorAll('.btn-play');
+    let currentAudio = null;
+    let currentButton = null;
+
+    playButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const card = button.closest('.card');
+        const audio = card.querySelector('audio');
+
+        // If clicking the same button
+        if (currentAudio === audio) {
+          if (audio.paused) {
+            audio.play();
+            button.innerHTML = '<i class="fas fa-pause"></i>';
+          } else {
+            audio.pause();
+            button.innerHTML = '<i class="fas fa-play"></i>';
+          }
+        } else {
+          // Stop any currently playing audio
+          if (currentAudio) {
+            currentAudio.pause();
+            currentButton.innerHTML = '<i class="fas fa-play"></i>';
+          }
+          // Play new one
+          audio.play();
+          button.innerHTML = '<i class="fas fa-pause"></i>';
+          currentAudio = audio;
+          currentButton = button;
+        }
+      });
+    });
+  </script>
+
+</body>
+</html>

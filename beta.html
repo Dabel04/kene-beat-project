@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/remixicon@3.2.0/fonts/remixicon.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/font-awesome.min.css">
+    <!-- <link rel="stylesheet" href="css/bootstrap.min.css"> -->
+    <link rel="stylesheet" href="css/styles.css" />
+    <title>Kene's beats</title>
+  </head>
+  <body>
+    <div class="container1">
+      <div class="nav1">
+        <div class="logo"><i class="fa fa-grav"> Kenton<span style="color: var(--secondary-color) ;">TheProducer</span></i></div>
+        <div class="links">
+          <div class="">
+            <span><i class="ri-search-line"></i></a></span>
+          </div>
+
+          <div class="dropdown">
+            ENG <span><i class="ri-arrow-drop-down-fill"></i></span>
+            <div class="dropdown-content">
+              <a href="#">English</a>
+              <a href="#">Spanish</a>
+              <a href="#">French</a>
+              <a href="#">German</a>
+            </div>
+          </div>
+
+          <div class="dropdown">
+            USD <span><i class="ri-arrow-drop-down-fill"></i></span>
+            <div class="dropdown-content">
+              <a href="#">USD ($)</a>
+              <a href="#">EUR (€)</a>
+              <a href="#">GBP (£)</a>
+              <a href="#">JPY (¥)</a>
+            </div>
+          </div>
+
+          <div class="dropdown">
+            ACCOUNT <span><i class="ri-arrow-drop-down-fill"></i></span>
+            <div class="dropdown-content">
+              <a href="getstarted.html">Login</a>
+              <a href="#">Register</a>
+              <a href="#">Orders</a>
+              <a href="#">Wishlist</a>
+            </div>
+          </div>
+
+
+          <div class="shopping__cart"><i class="fa fa-user-o"></i></div>
+
+        </div>
+      </div>
+      <div class="content">
+        <div class="image">
+          <img src="image/headphones1.png" alt="shoes" />
+        </div>
+        <div class="header">
+          <h1>Best Beats</h1>
+          <p>BUY NOW</p>
+        </div>
+        <div class="featured__item">
+          <h4>FEATURED</h4>
+          <p>BEATS FROM EVERY GENRE</p>
+        </div>
+        <div class="contact">
+          <span><i class="ri-phone-fill"></i></span> 9876543210
+        </div>
+      </div>
+      <div class="footer">
+        <div class="socials">
+          <span>Facebook</span>
+          <span>Twitter</span>
+          <span>Google</span>
+        </div>
+        <div class="slides">02<span>/05</span></div>
+      </div>
+    </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        // Get all dropdown elements
+        const dropdowns = document.querySelectorAll('.dropdown');
+        
+        // Add click event to each dropdown
+        dropdowns.forEach(dropdown => {
+          dropdown.addEventListener('click', function(e) {
+            e.stopPropagation();
+            
+            // Close all other dropdowns
+            dropdowns.forEach(otherDropdown => {
+              if (otherDropdown !== dropdown) {
+                otherDropdown.classList.remove('active');
+              }
+            });
+            
+            // Toggle the clicked dropdown
+            this.classList.toggle('active');
+          });
+        });
+        
+        // Close dropdowns when clicking elsewhere
+        document.addEventListener('click', function() {
+          dropdowns.forEach(dropdown => {
+            dropdown.classList.remove('active');
+          });
+        });
+        
+        // Prevent dropdown from closing when clicking inside it
+        document.querySelectorAll('.dropdown-content').forEach(content => {
+          content.addEventListener('click', function(e) {
+            e.stopPropagation();
+          });
+        });
+      });
+    </script>
+  </body>
+</html>
