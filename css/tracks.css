@@ -1,0 +1,458 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap");
+/* 1. Global CSS & Setup */
+:root {
+    /* Main Theme Variables (Matching the established scheme's spirit) */
+    --theme-bg-main: #0f0c29; /* Darkest Background */
+    --theme-bg-secondary: #24243e; /* Card/Header Background */
+    --theme-accent: #fb923c; /* Primary Accent Color (Orange/Coral) */
+    --theme-text-primary: #ffffff; /* Main Headings/Text */
+    --theme-text-secondary: #a3a3a3; /* Subtitles/Metadata */
+    
+    /* Utility Variables derived from main ones */
+    --bg-darker: #08061c;
+    --bg-hover-light: rgba(255, 255, 255, 0.08);
+    --bg-accent-light: #ffc28d; /* A lighter shade for tags/buttons */
+    --font-family-sans-serif: 'Poppins', sans-serif;
+    
+    /* NEW: Track Hover Background Color */
+    --theme-hover-bg: rgba(55, 97, 122, 0.2); 
+}
+
+body {
+    font-family: var(--font-family-sans-serif);
+    background: var(--theme-bg-main);
+    color: var(--theme-text-primary);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Bootstrap Overrides / Utility Classes */
+.bg-secondary-main {
+    background-color: var(--theme-bg-secondary) !important;
+}
+
+.text-primary-text {
+    color: var(--theme-text-primary) !important;
+}
+
+.text-secondary-text {
+    color: var(--theme-text-secondary) !important;
+}
+
+.btn-accent {
+    background-color: var(--theme-accent) !important;
+    color: var(--theme-bg-main) !important;
+    border: none;
+    transition: background-color 0.3s;
+}
+.btn-accent:hover {
+    background-color: #e57a2d !important; /* Slightly darker accent */
+    color: var(--theme-bg-main) !important;
+}
+
+.alert-bar {
+    background-color: var(--bg-darker);
+    border-bottom: 1px solid var(--theme-accent);
+}
+
+/* 2. Header & Navigation */
+.navbar {
+    background-color: var(--theme-bg-main);
+    border-bottom: 1px solid var(--theme-bg-secondary);
+}
+
+.logo-text {
+    font-size: 1.4rem;
+    font-weight: 500;
+    color: var(--theme-text-primary) !important;
+
+}
+
+.logo-text span {
+    color: var(--theme-accent) !important;
+}
+
+.nav-link {
+    color: var(--theme-text-secondary) !important;
+    transition: color 0.3s;
+}
+
+.nav-link:hover, .nav-link.active {
+    color: var(--theme-accent) !important;
+}
+
+/* Search Input Customization */
+.input-group input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+.input-group input:focus {
+    box-shadow: 0 0 0 0.25rem rgba(251, 146, 60, 0.5) !important; /* Custom focus ring */
+}
+
+/* Mobile Search Bar Container */
+.mobile-search-container {
+    background-color: var(--theme-bg-main);
+    border-bottom: 1px solid var(--theme-bg-secondary);
+}
+
+/* New Welcome Greeting Section */
+.welcome-container {
+    padding-top: 20px;
+    padding-bottom: 20px;
+    text-align: center;
+    background-color: var(--theme-bg-main);
+}
+
+.welcome-greeting {
+    font-size: 3rem;
+    font-weight: 900;
+    color: var(--theme-accent);
+    text-shadow: 0 0 10px rgba(251, 146, 60, 0.5); /* Subtle glow */
+    
+    /* Animation Properties */
+    animation: fade-in-scale 1.5s ease-out 0.5s forwards;
+    opacity: 0; /* Start hidden */
+    transform: scale(0.95);
+}
+
+/* Keyframes for animation */
+@keyframes fade-in-scale {
+    0% {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+/* End New Welcome Greeting Section */
+
+/* 3. Main Content Sections */
+
+/* Section 1: Recommendations (Hero with Skeleton Loading) */
+.skeleton-container {
+    height: 250px;
+    padding: 30px;
+}
+
+.skeleton-row {
+    height: 25px;
+    background-color: var(--theme-bg-secondary);
+    border-radius: 4px;
+    opacity: 0.7;
+    animation: pulse 1.5s infinite ease-in-out;
+}
+
+.skeleton-row:nth-child(2) { animation-delay: 0.2s; }
+.skeleton-row:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes pulse {
+    0% { opacity: 0.7; }
+    50% { opacity: 0.4; }
+    100% { opacity: 0.7; }
+}
+
+/* Section 2: Category Grid */
+.category-card {
+    transition: background-color 0.3s;
+}
+
+.category-card:hover {
+    background-color: var(--bg-hover-light);
+    border-radius: 8px;
+}
+
+/* Ensures square aspect ratio for category images */
+.category-img-container {
+    position: relative;
+    width: 100%;
+    padding-top: 100%; /* 1:1 Aspect Ratio */
+    overflow: hidden;
+}
+
+.category-img-container img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+
+/* Section 4: Item List Styling (The core dynamic component) */
+.track-row {
+    background-color: var(--theme-bg-secondary);
+    border-radius: 8px;
+    transition: background-color 0.2s ease;
+    border: 1px solid transparent;
+}
+
+/* Interaction: Hover effect for row */
+.track-row:hover {
+    background-color: var(--theme-hover-bg); /* Using the new theme variable */
+    border-color: rgba(251, 146, 60, 0.2);
+}
+
+.track-thumbnail {
+    width: 50px;
+    height: 50px;
+    min-width: 50px;
+    overflow: hidden;
+}
+
+.track-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.btn-play-toggle {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    border: none;
+    color: var(--theme-text-primary);
+    font-size: 1.2rem;
+    opacity: 0; /* Hidden by default */
+    transition: opacity 0.2s;
+    cursor: pointer;
+}
+
+/* Show play button overlay on hover */
+.track-row:hover .btn-play-toggle,
+.track-row.playing .btn-play-toggle {
+    opacity: 1;
+}
+
+/* Highlight the playing row */
+.track-row.playing {
+    border-left: 5px solid var(--theme-accent);
+}
+
+.track-visualization {
+    height: 30px;
+    display: flex;
+    align-items: center;
+}
+
+.visualizer-bars {
+    display: flex;
+    align-items: flex-end;
+    height: 100%;
+    gap: 2px;
+}
+
+/* Simple visualizer pulse for the playing state */
+.track-row.playing .visualizer-bars .bar {
+    width: 3px;
+    height: 100%;
+    background-color: var(--theme-accent);
+    border-radius: 1px;
+    animation: equalize 0.5s infinite ease-out;
+}
+
+/* Simple Action Buttons */
+.btn-action {
+    background: transparent;
+    color: var(--theme-text-secondary);
+}
+
+.btn-action:hover {
+    color: var(--theme-accent);
+}
+
+.bg-accent-light {
+    background-color: var(--bg-accent-light) !important;
+}
+
+@keyframes equalize {
+    0%, 100% { transform: scaleY(1); }
+    50% { transform: scaleY(1.8); }
+}
+
+/* Track Hover Actions (Used inside .title-action-row now) */
+
+/* Hide hover actions by default */
+.track-actions .hover-actions {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    /* Ensure the hover actions occupy the space so the row doesn't shift */
+    width: 130px; /* Width needed to contain 3 buttons + margin */
+    /* Removed the explicit margin-right which is now handled by ms-2 on track-actions and me-2 on hover-actions */
+}
+
+/* Show hover actions on row hover */
+.track-row:hover .track-actions .hover-actions {
+    opacity: 1;
+    pointer-events: all;
+}
+
+/* Style the action buttons inside the row */
+.track-actions .btn-action {
+    color: var(--theme-text-secondary);
+    background-color: transparent;
+    border: none;
+    padding: 0.25rem 0.5rem;
+    line-height: 1; /* Aligns icon better */
+}
+
+.track-actions .btn-action:hover {
+    color: var(--theme-accent);
+}
+
+/* NEW: Pagination Styling for Dark Theme */
+.pagination-dark-theme .page-item .page-link {
+    background-color: var(--theme-bg-secondary);
+    border: 1px solid var(--theme-bg-secondary);
+    color: var(--theme-text-primary);
+    transition: all 0.2s;
+}
+
+.pagination-dark-theme .page-item .page-link:hover {
+    background-color: var(--bg-hover-light);
+    color: var(--theme-accent);
+    border-color: var(--theme-accent);
+}
+
+.pagination-dark-theme .page-item.active .page-link {
+    background-color: var(--theme-accent) !important;
+    border-color: var(--theme-accent) !important;
+    color: var(--theme-bg-main) !important; /* Dark text on accent */
+}
+
+.pagination-dark-theme .page-item.disabled .page-link {
+    background-color: var(--theme-bg-secondary);
+    border-color: var(--theme-bg-secondary);
+    color: var(--theme-text-secondary);
+    opacity: 0.6;
+}
+/* END NEW: Pagination Styling */
+
+
+/* Multi-Option Modal Styling */
+.modal-content {
+    border: 1px solid var(--theme-accent);
+}
+
+.btn-close-white {
+    filter: invert(1); /* Makes the close button white for dark background */
+}
+
+.track-license-option {
+    cursor: pointer;
+    transition: all 0.2s;
+    border-color: var(--theme-bg-main) !important; /* Base border is main background */
+    background-color: var(--bg-darker);
+    position: relative;
+    border-width: 2px !important;
+}
+
+.track-license-option:hover {
+    background-color: var(--theme-bg-secondary);
+}
+
+/* Highlight for selected option */
+.track-license-option.selected {
+    border-color: var(--theme-accent) !important;
+    background-color: var(--theme-bg-secondary);
+}
+
+.track-license-option input[type="radio"] {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    /* Hide default radio button but keep checked state */
+    opacity: 0;
+}
+
+.track-license-option.selected .form-check-input::after {
+    content: "\f058"; /* Font Awesome solid circle check icon */
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 1.2rem;
+    color: var(--theme-accent);
+    opacity: 1;
+}
+
+/* Sliding Cart (Offcanvas) Styling */
+.offcanvas {
+    background-color: var(--theme-bg-secondary) !important;
+    color: var(--theme-text-primary);
+    border-left: 2px solid var(--theme-accent);
+}
+
+.offcanvas-header {
+    background-color: var(--bg-darker);
+}
+
+/* Responsive Overrides */
+@media (max-width: 992px) {
+    /* Hide visualization on smaller screens */
+    .track-visualization {
+        display: none !important;
+    }
+}
+
+@media (max-width: 768px) {
+    /* Navbar Toggler Fix */
+    .navbar-toggler {
+        border-color: var(--theme-accent) !important;
+    }
+    .navbar-toggler:focus {
+        box-shadow: none;
+    }
+    
+    /* Make the offcanvas wider on mobile */
+    .offcanvas-end {
+        width: 90vw;
+    }
+
+    /* Track list adjustments */
+    /* Changed from 'wrap' to 'nowrap' to ensure all top-level flex items stay on one line, 
+       but the new internal structure handles the title/actions alignment. */
+    .track-row {
+        flex-wrap: nowrap;
+        align-items: center;
+    }
+    
+    /* Hide elements that would take up too much horizontal space */
+    .track-duration, .track-tags {
+        display: none !important;
+    }
+    
+    /* Ensure the track details container expands, but not excessively */
+    .track-details {
+        flex-grow: 1 !important;
+        min-width: 0; 
+    }
+    
+    /* Remove old overrides for the now-internal .track-actions container */
+    /* .track-actions {
+        margin-top: 10px;
+        flex-basis: 100%;
+        text-align: end;
+    }
+    */
+    
+    /* Footer responsiveness */
+    .row-cols-md-4 {
+        --bs-columns: 2;
+    }
+}
+
+@media (min-width: 768px) and (max-width: 991.98px) {
+    /* Offcanvas width for tablets */
+    .offcanvas-end {
+        width: 50vw;
+    }
+}

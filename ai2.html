@@ -1,112 +1,558 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Music Ranking Page</title>
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-  <style>
-    body {
-      background-color: #1e1e2f;
-      color: #fff;
-      font-family: Arial, sans-serif;
-    }
-    .music-card {
-      background-color: #2c2c3c;
-      border-radius: 10px;
-      overflow: hidden;
-      position: relative;
-      margin-bottom: 20px;
-      transition: transform 0.2s;
-    }
-    .music-card:hover {
-      transform: scale(1.02);
-    }
-    .rank-badge {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      background: #007bff;
-      color: white;
-      font-weight: bold;
-      padding: 5px 10px;
-      border-radius: 8px;
-    }
-    .cover {
-      position: relative;
-    }
-    .cover img {
-      width: 100%;
-      height: 180px;
-      object-fit: cover;
-    }
-    .play-btn {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 40px;
-      color: white;
-      opacity: 0.8;
-    }
-    .tags span {
-      background: #3a3a4f;
-      padding: 3px 8px;
-      border-radius: 5px;
-      margin-right: 5px;
-      font-size: 12px;
-    }
-    .stats {
-      font-size: 13px;
-      color: #bbb;
-    }
-  </style>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>KENTOTHEPRODUCER - Premium Beats &amp; Sound Kits</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Config -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2bee79",
+                        "secondary": "#234832",
+                        "background-light": "#f6f8f7",
+                        "background-dark": "#112218",
+                        "card-dark": "#1a2e23",
+                        "text-dim": "#92c9a8"
+                    },
+                    fontFamily: {
+                        "display": ["Spline Sans", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "1rem", "lg": "1.5rem", "xl": "3rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #112218; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #234832; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #2bee79; 
+        }
+        
+        /* Subtle glow animation for primary elements */
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 5px rgba(43, 238, 121, 0.2); }
+            50% { box-shadow: 0 0 20px rgba(43, 238, 121, 0.4); }
+        }
+        .animate-glow {
+            animation: glow 3s infinite;
+        }
+    </style>
 </head>
-<body>
-
-<div class="container py-4">
-  <div class="row">
-
-    <!-- Card Example -->
-    <div class="col-md-6">
-      <div class="music-card p-3">
-        <span class="rank-badge">#1</span>
-        <div class="cover">
-          <img src="https://via.placeholder.com/600x300" alt="cover">
-          <span class="play-btn">&#9658;</span>
-        </div>
-        <h5 class="mt-3">Driftline</h5>
-        <p class="mb-1">Dudios, ApoC</p>
-        <div class="tags mb-2">
-          <span>#House</span>
-        </div>
-        <div class="stats">
-          ❤️ 41 &nbsp;&nbsp; ▶️ 307 &nbsp;&nbsp; ⏱ 13 days ago
-        </div>
-      </div>
-    </div>
-
-    <!-- Duplicate more cards -->
-    <div class="col-md-6">
-      <div class="music-card p-3">
-        <span class="rank-badge">#2</span>
-        <div class="cover">
-          <img src="https://via.placeholder.com/600x300" alt="cover">
-          <span class="play-btn">&#9658;</span>
-        </div>
-        <h5 class="mt-3">pipebomb on the horizon</h5>
-        <p class="mb-1">Kibbey, escapistt, CloudDude</p>
-        <div class="tags mb-2">
-          <span>#House</span> <span>#nyquilchicken</span>
-        </div>
-        <div class="stats">
-          ❤️ 70 &nbsp;&nbsp; ▶️ 1294 &nbsp;&nbsp; ⏱ 26 days ago
-        </div>
-      </div>
-    </div>
-
-  </div>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display antialiased selection:bg-primary selection:text-background-dark">
+<!-- Sticky Header -->
+<header class="sticky top-0 z-50 w-full border-b border-[#234832] bg-[#112218]/95 backdrop-blur-md">
+<div class="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+<div class="flex items-center gap-8">
+<!-- Logo -->
+<a class="flex items-center gap-3 text-white group" href="#">
+<div class="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary transition-all group-hover:bg-primary group-hover:text-background-dark">
+<span class="material-symbols-outlined !text-2xl">graphic_eq</span>
 </div>
-
-</body>
-</html>
+<h2 class="text-lg font-bold leading-tight tracking-tight">KENTOTHEPRODUCER</h2>
+</a>
+<!-- Desktop Nav -->
+<nav class="hidden md:flex items-center gap-8 ml-4">
+<a class="text-sm font-medium text-white hover:text-primary transition-colors" href="#">Home</a>
+<a class="text-sm font-medium text-text-dim hover:text-white transition-colors" href="#">Beats</a>
+<a class="text-sm font-medium text-text-dim hover:text-white transition-colors" href="#">Licensing</a>
+<a class="text-sm font-medium text-text-dim hover:text-white transition-colors" href="#">Sound Kits</a>
+<a class="text-sm font-medium text-text-dim hover:text-white transition-colors" href="#">Contact</a>
+</nav>
+</div>
+<!-- Actions -->
+<div class="flex items-center gap-4">
+<div class="hidden lg:flex items-center rounded-full bg-[#1a2e23] border border-[#234832] px-3 py-2 focus-within:border-primary/50 transition-colors w-64">
+<span class="material-symbols-outlined text-text-dim">search</span>
+<input class="bg-transparent border-none text-sm text-white placeholder-text-dim focus:ring-0 w-full" placeholder="Search beats, artists..." type="text"/>
+</div>
+<button class="relative flex items-center justify-center h-10 w-10 md:w-auto md:px-5 rounded-full bg-primary text-background-dark font-bold text-sm hover:bg-white transition-colors">
+<span class="material-symbols-outlined md:hidden">shopping_cart</span>
+<span class="hidden md:inline truncate mr-2">Cart</span>
+<span class="hidden md:flex h-5 w-5 items-center justify-center rounded-full bg-background-dark/20 text-xs">$0</span>
+</button>
+</div>
+</div>
+</header>
+<main class="flex flex-col min-h-screen">
+<!-- Hero Section -->
+<section class="relative flex min-h-[600px] flex-col justify-center overflow-hidden py-12 md:py-24">
+<!-- Background Image with Overlay -->
+<div class="absolute inset-0 z-0">
+<div class="absolute inset-0 bg-gradient-to-t from-background-dark via-background-dark/80 to-background-dark/40 z-10"></div>
+<div class="absolute inset-0 bg-gradient-to-r from-background-dark via-background-dark/60 to-transparent z-10"></div>
+<div class="h-full w-full bg-cover bg-center" data-alt="Dark recording studio mixing console with illuminated buttons and faders" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuA8Fom-Svh5URZBM-S_l7wsJDohg7NMz1tbwxxgukt6LeNy9VTv8YuGKeATYjTp_oc5rIw_453WbANARg6x3vvdZdMeCmlEoHuO0-TkfoOuLpS9y-G8_Q9d2oOGxHSJ8CChYHVHLhG7nAnOIqsbd5v9vZ8PXEy_j608q-OMtI5vEM1In8da1zjCQLESlEM0mIU4JgDAA7inQxhCYEvhUKpRcvoPyUguOpmS_GEwNw2E34MjfPLlyBLfOfi0G8gEGl1COJOQfK8-4rJF');"></div>
+</div>
+<div class="container relative z-20 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+<div class="max-w-2xl animate-fade-in-up">
+<div class="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-primary backdrop-blur-sm">
+<span class="h-2 w-2 rounded-full bg-primary animate-pulse"></span>
+                        New Sound Kit Available
+                    </div>
+<h1 class="mb-6 text-5xl font-black leading-[0.9] tracking-tighter text-white sm:text-7xl lg:text-8xl">
+                        ARCHITECT OF THE <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-emerald-400">FUTURE SOUND</span>
+</h1>
+<p class="mb-8 text-lg text-text-dim sm:text-xl max-w-lg leading-relaxed">
+                        Premium instrumentals for professional artists. Cinematic textures, hard-hitting drums, and analog warmth.
+                    </p>
+<div class="flex flex-wrap gap-4">
+<button class="flex items-center gap-2 h-14 px-8 rounded-full bg-primary text-background-dark font-bold text-lg hover:bg-white transition-all transform hover:scale-105 shadow-[0_0_20px_rgba(43,238,121,0.3)]">
+<span class="material-symbols-outlined">play_circle</span>
+                            Browse Beats
+                        </button>
+<button class="flex items-center gap-2 h-14 px-8 rounded-full bg-transparent border border-white/20 text-white font-bold text-lg hover:bg-white/10 hover:border-white transition-all backdrop-blur-sm">
+                            Licensing Info
+                        </button>
+</div>
+</div>
+</div>
+<!-- Floating Decorative Waveform -->
+<div class="absolute bottom-0 right-0 z-10 opacity-20 hidden lg:block pointer-events-none w-1/2">
+<svg class="w-full h-48 fill-primary" preserveaspectratio="none" viewbox="0 0 500 150">
+<path d="M0,100 C150,200 350,0 500,100 L500,00 L0,0 Z" style="stroke: none; opacity:0.8;"></path>
+<path d="M0,100 C150,200 350,0 500,100 L500,00 L0,0 Z" style="stroke: none; opacity:0.3; transform: scaleY(0.7) translateY(40px)"></path>
+</svg>
+</div>
+</section>
+<!-- Stats / Social Proof Strip -->
+<div class="border-y border-[#234832] bg-[#0c1811]">
+<div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+<div class="grid grid-cols-2 gap-8 md:grid-cols-4 text-center">
+<div>
+<p class="text-3xl font-bold text-white">500+</p>
+<p class="text-sm text-text-dim uppercase tracking-widest mt-1">Beats Sold</p>
+</div>
+<div>
+<p class="text-3xl font-bold text-white">1M+</p>
+<p class="text-sm text-text-dim uppercase tracking-widest mt-1">Streams</p>
+</div>
+<div>
+<p class="text-3xl font-bold text-white">100%</p>
+<p class="text-sm text-text-dim uppercase tracking-widest mt-1">Royalty Free</p>
+</div>
+<div>
+<p class="text-3xl font-bold text-white">24/7</p>
+<p class="text-sm text-text-dim uppercase tracking-widest mt-1">Support</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Featured Beats Section -->
+<section class="py-20 bg-background-dark relative">
+<div class="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+<div class="flex items-end justify-between mb-10">
+<div>
+<h2 class="text-3xl md:text-4xl font-bold text-white tracking-tight">Featured Beats</h2>
+<p class="text-text-dim mt-2">Hand-picked selection for your next hit.</p>
+</div>
+<a class="hidden sm:flex items-center text-primary font-bold hover:text-white transition-colors" href="#">
+                        View All Tracks <span class="material-symbols-outlined ml-1">arrow_forward</span>
+</a>
+</div>
+<!-- Beat List Container -->
+<div class="flex flex-col gap-3">
+<!-- Single Track Item 1 -->
+<div class="group relative flex flex-col md:flex-row items-center gap-4 md:gap-6 rounded-2xl bg-[#1a2e23]/50 border border-[#234832] p-4 transition-all hover:bg-[#1a2e23] hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5">
+<!-- Play Button Overlay on Image -->
+<div class="relative shrink-0">
+<div class="h-20 w-20 rounded-xl bg-cover bg-center" data-alt="Abstract neon smoke creating a skull shape" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDS8PWoQAaDlCdrrLyZCIsQNvWduYLqOQCHoVjrhEbOSmR_w9c79qVeMBqCCQMeCpN6Ktf9vsV5_EPWaW4A6bu0mktSKXn6vQ5gd-VkDvGYflx1_IxhKe6NaK8tykwRlV8H13kac96BWD4nzIciQeBjW6a6JnGhSRdX0Jg7R3RxdVXi4GPS2HBXoODUgRj2HBdayXPRBM3RhSFdELki6n2kuym6e_7vXpWjeRPsrPcdwPkyyCwZxtADNlI6jIKY1BOGIi8n79_YyZll');"></div>
+<div class="absolute inset-0 flex items-center justify-center bg-black/40 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+<span class="material-symbols-outlined text-white text-3xl">play_circle</span>
+</div>
+</div>
+<!-- Info -->
+<div class="flex flex-1 flex-col items-center md:items-start text-center md:text-left min-w-0 w-full">
+<h3 class="text-lg font-bold text-white truncate w-full">Neon Nights</h3>
+<div class="flex flex-wrap justify-center md:justify-start gap-3 mt-1 text-xs font-medium text-text-dim">
+<span class="bg-[#234832] px-2 py-0.5 rounded text-primary">140 BPM</span>
+<span class="bg-[#234832] px-2 py-0.5 rounded">F Minor</span>
+<span>Trap / Soul</span>
+</div>
+</div>
+<!-- Waveform Placeholder -->
+<div class="hidden lg:flex flex-[2] h-10 items-center opacity-40 group-hover:opacity-80 transition-opacity">
+<div class="flex items-end gap-[2px] w-full h-full">
+<!-- Generating random bars for visual -->
+<div class="w-1 bg-primary h-[40%] rounded-full"></div>
+<div class="w-1 bg-primary h-[70%] rounded-full"></div>
+<div class="w-1 bg-primary h-[50%] rounded-full"></div>
+<div class="w-1 bg-primary h-[80%] rounded-full"></div>
+<div class="w-1 bg-primary h-[60%] rounded-full"></div>
+<div class="w-1 bg-primary h-[30%] rounded-full"></div>
+<div class="w-1 bg-primary h-[90%] rounded-full"></div>
+<div class="w-1 bg-primary h-[40%] rounded-full"></div>
+<div class="w-1 bg-primary h-[70%] rounded-full"></div>
+<div class="w-1 bg-primary h-[50%] rounded-full"></div>
+<div class="w-1 bg-primary h-[80%] rounded-full"></div>
+<div class="w-1 bg-primary h-[60%] rounded-full"></div>
+<div class="w-1 bg-primary h-[30%] rounded-full"></div>
+<div class="w-1 bg-primary h-[40%] rounded-full"></div>
+<div class="w-1 bg-primary h-[70%] rounded-full"></div>
+<div class="w-1 bg-primary h-[50%] rounded-full"></div>
+<div class="w-1 bg-primary h-[80%] rounded-full"></div>
+<div class="w-1 bg-primary h-[60%] rounded-full"></div>
+<div class="w-1 bg-primary h-[30%] rounded-full"></div>
+<div class="w-1 bg-primary h-[90%] rounded-full"></div>
+<div class="w-1 bg-primary h-[40%] rounded-full"></div>
+<div class="w-1 bg-primary h-[70%] rounded-full"></div>
+<div class="w-1 bg-primary h-[50%] rounded-full"></div>
+<div class="w-1 bg-primary h-[80%] rounded-full"></div>
+<div class="w-1 bg-primary h-[60%] rounded-full"></div>
+<div class="w-1 bg-primary h-[30%] rounded-full"></div>
+</div>
+</div>
+<!-- Actions -->
+<div class="flex items-center gap-4 shrink-0 w-full md:w-auto justify-between md:justify-end mt-2 md:mt-0 border-t md:border-t-0 border-[#234832] pt-3 md:pt-0">
+<span class="text-lg font-bold text-primary">$29.99</span>
+<div class="flex gap-2">
+<button class="h-10 w-10 flex items-center justify-center rounded-full border border-[#234832] text-text-dim hover:bg-white hover:text-background-dark transition-colors" title="Download Demo">
+<span class="material-symbols-outlined text-sm">download</span>
+</button>
+<button class="flex items-center gap-2 h-10 px-5 rounded-full bg-primary text-background-dark text-sm font-bold hover:bg-white transition-colors">
+<span class="material-symbols-outlined text-sm">shopping_cart</span>
+                                    Add
+                                </button>
+</div>
+</div>
+</div>
+<!-- Single Track Item 2 -->
+<div class="group relative flex flex-col md:flex-row items-center gap-4 md:gap-6 rounded-2xl bg-[#1a2e23]/50 border border-[#234832] p-4 transition-all hover:bg-[#1a2e23] hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5">
+<div class="relative shrink-0">
+<div class="h-20 w-20 rounded-xl bg-cover bg-center" data-alt="Abstract liquid oil painting with dark blue and gold swirls" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCPSdXv5KiKpmuPlIaABXEDzpM0qWgHgtq0h3ps_8p0FigE-lWYGwBONktD3XbvSQ8aisXG7x_AwIClDR1zxNZoVfGDiSO6d3DXnq_lxlIlTn6gB1OlXnJw4SGi8vGXlV4fSz_2DcJ00ldLI6tqoYkT6ddgTpHdfvPdxwmreexgon5nSFtti4mEbCWyzD33wkqYJfdhCdDplwkIe3289lMKarAAdEaYL6XIpZIhlZLov8f-szjhxmrRTttHMS56Wgt8scWr7eEyhlbD');"></div>
+<div class="absolute inset-0 flex items-center justify-center bg-black/40 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+<span class="material-symbols-outlined text-white text-3xl">play_circle</span>
+</div>
+</div>
+<div class="flex flex-1 flex-col items-center md:items-start text-center md:text-left min-w-0 w-full">
+<h3 class="text-lg font-bold text-white truncate w-full">Analog Dreams</h3>
+<div class="flex flex-wrap justify-center md:justify-start gap-3 mt-1 text-xs font-medium text-text-dim">
+<span class="bg-[#234832] px-2 py-0.5 rounded text-primary">95 BPM</span>
+<span class="bg-[#234832] px-2 py-0.5 rounded">C Major</span>
+<span>Lo-Fi / Chill</span>
+</div>
+</div>
+<div class="hidden lg:flex flex-[2] h-10 items-center opacity-40 group-hover:opacity-80 transition-opacity">
+<div class="flex items-end gap-[2px] w-full h-full">
+<div class="w-1 bg-text-dim h-[30%] rounded-full group-hover:bg-primary transition-colors"></div>
+<div class="w-1 bg-text-dim h-[60%] rounded-full group-hover:bg-primary transition-colors"></div>
+<div class="w-1 bg-text-dim h-[40%] rounded-full group-hover:bg-primary transition-colors"></div>
+<div class="w-1 bg-text-dim h-[70%] rounded-full group-hover:bg-primary transition-colors"></div>
+<div class="w-1 bg-text-dim h-[50%] rounded-full group-hover:bg-primary transition-colors"></div>
+<div class="w-1 bg-text-dim h-[20%] rounded-full group-hover:bg-primary transition-colors"></div>
+<div class="w-1 bg-text-dim h-[60%] rounded-full group-hover:bg-primary transition-colors"></div>
+<div class="w-1 bg-text-dim h-[80%] rounded-full group-hover:bg-primary transition-colors"></div>
+<div class="w-1 bg-text-dim h-[40%] rounded-full group-hover:bg-primary transition-colors"></div>
+<div class="w-1 bg-text-dim h-[60%] rounded-full group-hover:bg-primary transition-colors"></div>
+<div class="w-1 bg-text-dim h-[30%] rounded-full group-hover:bg-primary transition-colors"></div>
+<div class="w-1 bg-text-dim h-[20%] rounded-full group-hover:bg-primary transition-colors"></div>
+<div class="w-1 bg-text-dim h-[50%] rounded-full group-hover:bg-primary transition-colors"></div>
+<div class="w-1 bg-text-dim h-[70%] rounded-full group-hover:bg-primary transition-colors"></div>
+<div class="w-1 bg-text-dim h-[40%] rounded-full group-hover:bg-primary transition-colors"></div>
+<div class="w-1 bg-text-dim h-[60%] rounded-full group-hover:bg-primary transition-colors"></div>
+<div class="w-1 bg-text-dim h-[20%] rounded-full group-hover:bg-primary transition-colors"></div>
+<div class="w-1 bg-text-dim h-[50%] rounded-full group-hover:bg-primary transition-colors"></div>
+<div class="w-1 bg-text-dim h-[80%] rounded-full group-hover:bg-primary transition-colors"></div>
+<div class="w-1 bg-text-dim h-[30%] rounded-full group-hover:bg-primary transition-colors"></div>
+<div class="w-1 bg-text-dim h-[40%] rounded-full group-hover:bg-primary transition-colors"></div>
+<div class="w-1 bg-text-dim h-[60%] rounded-full group-hover:bg-primary transition-colors"></div>
+<div class="w-1 bg-text-dim h-[30%] rounded-full group-hover:bg-primary transition-colors"></div>
+<div class="w-1 bg-text-dim h-[20%] rounded-full group-hover:bg-primary transition-colors"></div>
+<div class="w-1 bg-text-dim h-[50%] rounded-full group-hover:bg-primary transition-colors"></div>
+<div class="w-1 bg-text-dim h-[40%] rounded-full group-hover:bg-primary transition-colors"></div>
+</div>
+</div>
+<div class="flex items-center gap-4 shrink-0 w-full md:w-auto justify-between md:justify-end mt-2 md:mt-0 border-t md:border-t-0 border-[#234832] pt-3 md:pt-0">
+<span class="text-lg font-bold text-primary">$29.99</span>
+<div class="flex gap-2">
+<button class="h-10 w-10 flex items-center justify-center rounded-full border border-[#234832] text-text-dim hover:bg-white hover:text-background-dark transition-colors" title="Download Demo">
+<span class="material-symbols-outlined text-sm">download</span>
+</button>
+<button class="flex items-center gap-2 h-10 px-5 rounded-full bg-primary text-background-dark text-sm font-bold hover:bg-white transition-colors">
+<span class="material-symbols-outlined text-sm">shopping_cart</span>
+                                    Add
+                                </button>
+</div>
+</div>
+</div>
+<!-- Single Track Item 3 -->
+<div class="group relative flex flex-col md:flex-row items-center gap-4 md:gap-6 rounded-2xl bg-[#1a2e23]/50 border border-[#234832] p-4 transition-all hover:bg-[#1a2e23] hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5">
+<div class="relative shrink-0">
+<div class="h-20 w-20 rounded-xl bg-cover bg-center" data-alt="Retro synthwave landscape with purple sun and grid" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuB1B4fF9C4ZwmgzR1ppprqgnJYiNNDJT4WhBpDHKenYLPhSjWqUoVqfMGynWHB0D4FDad7SPmWgAUyqaYwgvw7vHBhdLy-niR6fYe6AASK-rl81sS3C6XdHDoEbMWbHw7x1jYYUXJ_uXXG8-aeH1JVvejLZ7Da87GzrE_pPPqj3oCub65vPaWQbMnp0sJwL2NvCkFx010We65Azv2liFFU5iz_PTkb2bXjkdVh9PDY4aMPvoMFXOIiM_sI2W4aEiO8dLRSmGWYCXVjq');"></div>
+<div class="absolute inset-0 flex items-center justify-center bg-black/40 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+<span class="material-symbols-outlined text-white text-3xl">play_circle</span>
+</div>
+</div>
+<div class="flex flex-1 flex-col items-center md:items-start text-center md:text-left min-w-0 w-full">
+<h3 class="text-lg font-bold text-white truncate w-full">Cyber Punch</h3>
+<div class="flex flex-wrap justify-center md:justify-start gap-3 mt-1 text-xs font-medium text-text-dim">
+<span class="bg-[#234832] px-2 py-0.5 rounded text-primary">160 BPM</span>
+<span class="bg-[#234832] px-2 py-0.5 rounded">D Minor</span>
+<span>Phonk / Drift</span>
+</div>
+</div>
+<div class="hidden lg:flex flex-[2] h-10 items-center opacity-40 group-hover:opacity-80 transition-opacity">
+<div class="flex items-end gap-[2px] w-full h-full">
+<div class="w-1 bg-text-dim h-[50%] rounded-full group-hover:bg-primary transition-colors"></div>
+<div class="w-1 bg-text-dim h-[80%] rounded-full group-hover:bg-primary transition-colors"></div>
+<div class="w-1 bg-text-dim h-[60%] rounded-full group-hover:bg-primary transition-colors"></div>
+<div class="w-1 bg-text-dim h-[40%] rounded-full group-hover:bg-primary transition-colors"></div>
+<div class="w-1 bg-text-dim h-[90%] rounded-full group-hover:bg-primary transition-colors"></div>
+<div class="w-1 bg-text-dim h-[70%] rounded-full group-hover:bg-primary transition-colors"></div>
+<div class="w-1 bg-text-dim h-[30%] rounded-full group-hover:bg-primary transition-colors"></div>
+<div class="w-1 bg-text-dim h-[50%] rounded-full group-hover:bg-primary transition-colors"></div>
+<div class="w-1 bg-text-dim h-[80%] rounded-full group-hover:bg-primary transition-colors"></div>
+<div class="w-1 bg-text-dim h-[60%] rounded-full group-hover:bg-primary transition-colors"></div>
+<div class="w-1 bg-text-dim h-[90%] rounded-full group-hover:bg-primary transition-colors"></div>
+<div class="w-1 bg-text-dim h-[20%] rounded-full group-hover:bg-primary transition-colors"></div>
+<div class="w-1 bg-text-dim h-[40%] rounded-full group-hover:bg-primary transition-colors"></div>
+<div class="w-1 bg-text-dim h-[60%] rounded-full group-hover:bg-primary transition-colors"></div>
+<div class="w-1 bg-text-dim h-[80%] rounded-full group-hover:bg-primary transition-colors"></div>
+<div class="w-1 bg-text-dim h-[50%] rounded-full group-hover:bg-primary transition-colors"></div>
+<div class="w-1 bg-text-dim h-[70%] rounded-full group-hover:bg-primary transition-colors"></div>
+<div class="w-1 bg-text-dim h-[30%] rounded-full group-hover:bg-primary transition-colors"></div>
+<div class="w-1 bg-text-dim h-[60%] rounded-full group-hover:bg-primary transition-colors"></div>
+<div class="w-1 bg-text-dim h-[40%] rounded-full group-hover:bg-primary transition-colors"></div>
+<div class="w-1 bg-text-dim h-[20%] rounded-full group-hover:bg-primary transition-colors"></div>
+<div class="w-1 bg-text-dim h-[50%] rounded-full group-hover:bg-primary transition-colors"></div>
+<div class="w-1 bg-text-dim h-[70%] rounded-full group-hover:bg-primary transition-colors"></div>
+<div class="w-1 bg-text-dim h-[40%] rounded-full group-hover:bg-primary transition-colors"></div>
+<div class="w-1 bg-text-dim h-[60%] rounded-full group-hover:bg-primary transition-colors"></div>
+<div class="w-1 bg-text-dim h-[30%] rounded-full group-hover:bg-primary transition-colors"></div>
+</div>
+</div>
+<div class="flex items-center gap-4 shrink-0 w-full md:w-auto justify-between md:justify-end mt-2 md:mt-0 border-t md:border-t-0 border-[#234832] pt-3 md:pt-0">
+<span class="text-lg font-bold text-primary">$34.99</span>
+<div class="flex gap-2">
+<button class="h-10 w-10 flex items-center justify-center rounded-full border border-[#234832] text-text-dim hover:bg-white hover:text-background-dark transition-colors" title="Download Demo">
+<span class="material-symbols-outlined text-sm">download</span>
+</button>
+<button class="flex items-center gap-2 h-10 px-5 rounded-full bg-primary text-background-dark text-sm font-bold hover:bg-white transition-colors">
+<span class="material-symbols-outlined text-sm">shopping_cart</span>
+                                    Add
+                                </button>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-8 flex justify-center">
+<a class="block w-full sm:w-auto text-center rounded-full border border-primary/30 py-3 px-8 text-sm font-bold text-primary hover:bg-primary hover:text-background-dark transition-colors" href="#">View All Beats</a>
+</div>
+</div>
+</section>
+<!-- Pricing Cards -->
+<section class="py-20 bg-[#0c1811]">
+<div class="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+<div class="text-center mb-16">
+<h2 class="text-3xl md:text-4xl font-bold text-white tracking-tight">Licensing Options</h2>
+<p class="text-text-dim mt-4 max-w-2xl mx-auto">Simple terms. Full rights. Choose the license that fits your project needs.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<!-- Card 1 -->
+<div class="rounded-2xl bg-[#1a2e23] border border-[#234832] p-8 flex flex-col hover:-translate-y-2 transition-transform duration-300">
+<div class="mb-4">
+<h3 class="text-xl font-bold text-white">Basic Lease</h3>
+<p class="text-text-dim text-sm mt-1">MP3 File</p>
+</div>
+<div class="mb-6">
+<span class="text-4xl font-black text-primary">$29.99</span>
+<span class="text-text-dim">/ beat</span>
+</div>
+<ul class="space-y-4 mb-8 flex-1">
+<li class="flex items-start gap-3 text-sm text-gray-300">
+<span class="material-symbols-outlined text-primary text-base pt-0.5">check</span>
+                                High Quality MP3
+                            </li>
+<li class="flex items-start gap-3 text-sm text-gray-300">
+<span class="material-symbols-outlined text-primary text-base pt-0.5">check</span>
+                                50,000 Streams
+                            </li>
+<li class="flex items-start gap-3 text-sm text-gray-300">
+<span class="material-symbols-outlined text-primary text-base pt-0.5">check</span>
+                                Distribute to Spotify/Apple
+                            </li>
+<li class="flex items-start gap-3 text-sm text-gray-400/50 line-through">
+<span class="material-symbols-outlined text-base pt-0.5">close</span>
+                                Track Stems
+                            </li>
+</ul>
+<button class="w-full rounded-full border border-primary/20 py-3 text-sm font-bold text-white hover:bg-primary hover:text-background-dark transition-colors">Read License</button>
+</div>
+<!-- Card 2 (Popular) -->
+<div class="relative rounded-2xl bg-gradient-to-b from-[#234832] to-[#1a2e23] border border-primary p-8 flex flex-col shadow-[0_0_30px_rgba(43,238,121,0.1)] hover:-translate-y-2 transition-transform duration-300">
+<div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-background-dark text-xs font-bold px-4 py-1 rounded-full uppercase tracking-wider">Most Popular</div>
+<div class="mb-4">
+<h3 class="text-xl font-bold text-white">Premium Lease</h3>
+<p class="text-primary/80 text-sm mt-1">WAV + Stems</p>
+</div>
+<div class="mb-6">
+<span class="text-4xl font-black text-white">$79.99</span>
+<span class="text-text-dim">/ beat</span>
+</div>
+<ul class="space-y-4 mb-8 flex-1">
+<li class="flex items-start gap-3 text-sm text-white">
+<span class="material-symbols-outlined text-primary text-base pt-0.5">check</span>
+                                WAV + MP3 + Track Stems
+                            </li>
+<li class="flex items-start gap-3 text-sm text-white">
+<span class="material-symbols-outlined text-primary text-base pt-0.5">check</span>
+                                500,000 Streams
+                            </li>
+<li class="flex items-start gap-3 text-sm text-white">
+<span class="material-symbols-outlined text-primary text-base pt-0.5">check</span>
+                                Radio Airplay Rights
+                            </li>
+<li class="flex items-start gap-3 text-sm text-white">
+<span class="material-symbols-outlined text-primary text-base pt-0.5">check</span>
+                                For Music Videos
+                            </li>
+</ul>
+<button class="w-full rounded-full bg-primary py-3 text-sm font-bold text-background-dark hover:bg-white transition-colors shadow-lg shadow-primary/20">Read License</button>
+</div>
+<!-- Card 3 -->
+<div class="rounded-2xl bg-[#1a2e23] border border-[#234832] p-8 flex flex-col hover:-translate-y-2 transition-transform duration-300">
+<div class="mb-4">
+<h3 class="text-xl font-bold text-white">Unlimited</h3>
+<p class="text-text-dim text-sm mt-1">Full Ownership</p>
+</div>
+<div class="mb-6">
+<span class="text-4xl font-black text-primary">$199.99</span>
+<span class="text-text-dim">/ beat</span>
+</div>
+<ul class="space-y-4 mb-8 flex-1">
+<li class="flex items-start gap-3 text-sm text-gray-300">
+<span class="material-symbols-outlined text-primary text-base pt-0.5">check</span>
+                                Unlimited Streams
+                            </li>
+<li class="flex items-start gap-3 text-sm text-gray-300">
+<span class="material-symbols-outlined text-primary text-base pt-0.5">check</span>
+                                Unlimited Radio Play
+                            </li>
+<li class="flex items-start gap-3 text-sm text-gray-300">
+<span class="material-symbols-outlined text-primary text-base pt-0.5">check</span>
+                                100% Royalties
+                            </li>
+<li class="flex items-start gap-3 text-sm text-gray-300">
+<span class="material-symbols-outlined text-primary text-base pt-0.5">check</span>
+                                Track Stems Included
+                            </li>
+</ul>
+<button class="w-full rounded-full border border-primary/20 py-3 text-sm font-bold text-white hover:bg-primary hover:text-background-dark transition-colors">Read License</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Newsletter & Social -->
+<section class="py-24 bg-background-dark relative overflow-hidden">
+<!-- Background Radial Gradient -->
+<div class="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-[#234832]/20 via-background-dark to-background-dark z-0"></div>
+<div class="container relative z-10 mx-auto max-w-4xl px-4 text-center">
+<span class="material-symbols-outlined text-6xl text-primary mb-6">mail</span>
+<h2 class="text-4xl md:text-5xl font-black text-white mb-6">JOIN THE INNER CIRCLE</h2>
+<p class="text-lg text-text-dim mb-10">Sign up for exclusive beat drops, discounts, and free sound kits. Join 10,000+ producers and artists.</p>
+<form class="flex flex-col sm:flex-row gap-4 max-w-md mx-auto mb-16">
+<input class="flex-1 rounded-full bg-[#1a2e23] border border-[#234832] px-6 py-4 text-white placeholder-text-dim focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" placeholder="Enter your email" type="email"/>
+<button class="rounded-full bg-primary px-8 py-4 font-bold text-background-dark hover:bg-white transition-colors shadow-lg shadow-primary/20" type="button">Subscribe</button>
+</form>
+<div class="flex justify-center gap-8">
+<a class="text-text-dim hover:text-white transition-colors transform hover:scale-110" href="#">
+<!-- Using material symbols as placeholder for social icons -->
+<span class="material-symbols-outlined text-3xl">public</span>
+</a>
+<a class="text-text-dim hover:text-white transition-colors transform hover:scale-110" href="#">
+<span class="material-symbols-outlined text-3xl">smart_display</span>
+</a>
+<a class="text-text-dim hover:text-white transition-colors transform hover:scale-110" href="#">
+<span class="material-symbols-outlined text-3xl">photo_camera</span>
+</a>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="border-t border-[#234832] bg-[#0c1811] py-12">
+<div class="container mx-auto max-w-7xl px-4 flex flex-col md:flex-row justify-between items-center gap-6">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">graphic_eq</span>
+<span class="text-white font-bold tracking-tight">KENTOTHEPRODUCER</span>
+</div>
+<div class="flex flex-wrap justify-center gap-6 text-sm text-text-dim">
+<a class="hover:text-primary transition-colors" href="#">Terms of Service</a>
+<a class="hover:text-primary transition-colors" href="#">Privacy Policy</a>
+<a class="hover:text-primary transition-colors" href="#">Licensing Info</a>
+<a class="hover:text-primary transition-colors" href="#">Contact</a>
+</div>
+<p class="text-xs text-text-dim/50">
+                © 2024 Kentotheproducer. All rights reserved.
+            </p>
+</div>
+</footer>
+<!-- Persistent Audio Player Sticky Bottom -->
+<div class="fixed bottom-0 left-0 right-0 z-50 border-t border-[#234832] bg-[#112218]/95 backdrop-blur-xl px-4 py-3">
+<div class="mx-auto max-w-7xl flex items-center justify-between gap-4">
+<!-- Track Info -->
+<div class="flex items-center gap-4 w-1/3">
+<div class="h-12 w-12 rounded-lg bg-cover bg-center shrink-0" data-alt="Small thumbnail of the currently playing track art" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuD8ctEyGU2N75DhIOMsAdqM1wMV8UFVdHgMRxf-dADr179_svabyl7-gRYRDxrSjCdop-SG3QrJS9g0oV80cV0IGM_Kc7vblToFhZxSIJSltCgr1vw80Qj3WhnZL0G2faESfOfgNoJg6WBKNCbGY5qNlIKeNKfs0Y4QpaoMljrxg4AQmThI8Sa77sQJK3vrDQbQAMqoQEocvjf6ig6F12uZGK42WqyP-Ape1svoWXJFKdkZDNjHnGXpPMjiLlaCH5Ut_XR9e-BcqJMN');"></div>
+<div class="hidden sm:block overflow-hidden">
+<p class="truncate text-sm font-bold text-white">Neon Nights</p>
+<p class="truncate text-xs text-text-dim">Kentotheproducer</p>
+</div>
+</div>
+<!-- Controls -->
+<div class="flex flex-col items-center flex-1 max-w-md">
+<div class="flex items-center gap-6">
+<button class="text-text-dim hover:text-white">
+<span class="material-symbols-outlined text-xl">skip_previous</span>
+</button>
+<button class="h-10 w-10 flex items-center justify-center rounded-full bg-white text-background-dark hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-2xl">play_arrow</span>
+</button>
+<button class="text-text-dim hover:text-white">
+<span class="material-symbols-outlined text-xl">skip_next</span>
+</button>
+</div>
+<!-- Progress Bar -->
+<div class="w-full flex items-center gap-3 mt-2 group">
+<span class="text-[10px] text-text-dim font-mono">0:00</span>
+<div class="h-1 flex-1 rounded-full bg-[#234832] cursor-pointer overflow-hidden">
+<div class="h-full w-0 bg-primary group-hover:bg-white transition-colors"></div>
+</div>
+<span class="text-[10px] text-text-dim font-mono">3:42</span>
+</div>
+</div>
+<!-- Volume / Extra -->
+<div class="flex items-center justify-end gap-4 w-1/3">
+<button class="text-text-dim hover:text-white hidden sm:block">
+<span class="material-symbols-outlined text-xl">playlist_play</span>
+</button>
+<div class="hidden md:flex items-center gap-2 group w-24">
+<span class="material-symbols-outlined text-text-dim text-xl">volume_up</span>
+<div class="h-1 flex-1 rounded-full bg-[#234832] cursor-pointer overflow-hidden">
+<div class="h-full w-3/4 bg-text-dim group-hover:bg-white transition-colors"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</body></html>
