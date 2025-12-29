@@ -35,7 +35,6 @@ if (count($whereClauses) > 0) {
 }
 
 // --- PAGINATION LOGIC ---
-// Count total results for this specific filter
 $countSql = "SELECT COUNT(*) as total FROM tracks $whereSQL";
 $countStmt = $conn->prepare($countSql);
 if (!empty($types)) {
@@ -46,14 +45,12 @@ $total = $countStmt->get_result()->fetch_assoc()['total'];
 $totalPages = ceil($total / $beatsPerPage);
 $countStmt->close();
 
-// Calculate Offset
 $offset = ($page - 1) * $beatsPerPage;
 
 // --- FETCH TRACKS ---
 $sql = "SELECT * FROM tracks $whereSQL ORDER BY id DESC LIMIT ? OFFSET ?";
 $stmt = $conn->prepare($sql);
 
-// Append Limit/Offset params
 $bindParams = $params;
 $bindParams[] = $beatsPerPage;
 $bindParams[] = $offset;
@@ -81,8 +78,7 @@ while ($row = $result->fetch_assoc()) {
 }
 $stmt->close();
 
-// --- FETCH ALL TAGS (For Filter Bar) ---
-// We need all unique tags from the DB to build the menu
+// --- FETCH ALL TAGS ---
 $tagSql = "SELECT tags FROM tracks";
 $tagResult = $conn->query($tagSql);
 $allTags = [];
@@ -185,14 +181,12 @@ sort($allTags);
                class="page-link <?php echo ($page <= 1) ? 'disabled' : ''; ?>">
                &laquo;
             </a>
-
             <?php for($i = 1; $i <= $totalPages; $i++): ?>
                 <a href="?page=<?php echo $i; ?>&search=<?php echo urlencode($search); ?>&tag=<?php echo urlencode($filterTag); ?>" 
                    class="page-link <?php echo ($page == $i) ? 'active' : ''; ?>">
                    <?php echo $i; ?>
                 </a>
             <?php endfor; ?>
-
             <a href="?page=<?php echo min($totalPages, $page+1); ?>&search=<?php echo urlencode($search); ?>&tag=<?php echo urlencode($filterTag); ?>" 
                class="page-link <?php echo ($page >= $totalPages) ? 'disabled' : ''; ?>">
                &raquo;
@@ -208,6 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 1. DATA FROM PHP
     const tracksData = <?php echo json_encode($tracksArray); ?>;
     const gridContainer = document.getElementById('tracks-grid');
+    const isLoggedIn = <?php echo isset($_SESSION['user_id']) ? 'true' : 'false'; ?>;
 
     // 2. RENDER FUNCTION
     function renderTracks(data) {
@@ -261,7 +256,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 3. LISTENERS (Play & Cart)
+    // 3. LISTENERS
     gridContainer.addEventListener('click', (e) => {
         // Play
         const playBtn = e.target.closest('.js-play-track');
@@ -285,7 +280,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Helper: Open Cart Modal (Same logic as home.php)
+    // Helper: Open Cart Modal (Matching footer.php options)
     function openCartModal(trackData) {
         const modal = document.getElementById('options-modal-overlay');
         const modalTitle = document.getElementById('modal-track-name');
@@ -295,10 +290,26 @@ document.addEventListener('DOMContentLoaded', () => {
             modalTitle.innerHTML = `Select License: <span style="color:#2bee79">${trackData.name}</span>`;
             optionsContainer.innerHTML = ''; 
 
+            // UPDATED LICENSES TO MATCH HOME/FOOTER
             const LICENSES = {
-                'basic': { name: 'Basic Lease', price: 25.00, features: ['MP3 File', '5k Streams'], recommended: false },
-                'premium': { name: 'Premium Lease', price: 99.99, features: ['WAV + MP3', '500k Streams'], recommended: true },
-                'exclusive': { name: 'Exclusive Rights', price: 500.00, features: ['Unlimited', 'Ownership'], recommended: false }
+                'basic': { 
+                    name: 'Basic Lease', 
+                    price: 25.00, 
+                    features: ['MP3 File (320kbps)', '5,000 Streams Cap', 'Non-Profit Use', '1 Commercial Video', 'Instant Download'],
+                    recommended: false
+                },
+                'premium': { 
+                    name: 'Premium Lease', 
+                    price: 99.99, 
+                    features: ['WAV + MP3 Files', '500,000 Streams Cap', 'For Profit Use', '10 Commercial Videos', 'Tracked Out Stems (+$50)'],
+                    recommended: true
+                },
+                'exclusive': { 
+                    name: 'Exclusive Rights', 
+                    price: 500.00, 
+                    features: ['MP3 + WAV + Stems', 'Unlimited Streams', 'Unlimited Profits', 'Radio Broadcasting', 'Ownership Transferred'],
+                    recommended: false
+                }
             };
             
             ['basic', 'premium', 'exclusive'].forEach(key => {
@@ -313,9 +324,25 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="select-label">Select Plan</div>
                 `;
                 div.onclick = () => {
+                    // 1. Get Cart
                     let cart = JSON.parse(localStorage.getItem('cartItems')) || [];
+                    
+                    // 2. Add Item
                     cart.push({ ...trackData, price: license.price, licenseKey: key, licenseName: license.name });
+                    
+                    // 3. Save Local
                     localStorage.setItem('cartItems', JSON.stringify(cart));
+                    
+                    // 4. Sync Server (If Logged In)
+                    if(isLoggedIn) {
+                        fetch('includes/save_cart.php', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ cart: cart })
+                        }).catch(err => console.error("Sync failed"));
+                    }
+
+                    // 5. Update UI
                     document.getElementById('open-cart-btn').click(); 
                     modal.style.display = 'none';
                 };
