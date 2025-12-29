@@ -52,7 +52,6 @@
                         <span class="material-symbols-outlined group-hover:text-primary">group</span>
                         <p class="group-hover:text-white text-sm font-medium">Customers</p>
                     </a>
-
                      <a class="flex items-center gap-4 px-4 py-3 rounded-full hover:bg-gray-100 dark:hover:bg-white/5 group transition-all text-gray-600 dark:text-gray-400" href="order.php">
                         <span class="material-symbols-outlined group-hover:text-primary transition-colors">shopping_bag</span>
                         <p class="group-hover:text-white text-sm font-medium transition-colors">Orders</p>
@@ -112,6 +111,8 @@
         
         <div class="p-6 overflow-y-auto custom-scrollbar">
             <form id="upload-form" class="flex flex-col gap-6">
+                <input type="hidden" id="edit-track-id" value="">
+
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div class="md:col-span-1">
                         <label class="text-xs font-bold text-gray-400 uppercase mb-2 block">Cover Art</label>
@@ -123,19 +124,40 @@
                             </div>
                         </div>
                     </div>
-                    <div class="md:col-span-2">
-                        <label class="text-xs font-bold text-gray-400 uppercase mb-2 block">Audio File (MP3/WAV)</label>
-                        <div id="audio-drop-zone" class="drop-zone h-40 w-full rounded-xl border-2 border-white/10 bg-black/20 flex flex-col items-center justify-center cursor-pointer hover:border-white/30 text-gray-400 hover:text-white group relative">
-                            <input type="file" id="audio-input" accept="audio/*" class="hidden">
-                            <div class="flex flex-col items-center text-center">
-                                <span class="material-symbols-outlined text-4xl mb-2 text-primary group-hover:scale-110 transition-transform">audio_file</span><h4 class="text-sm font-bold text-white mb-1">Drag & Drop Audio</h4><p class="text-[10px] text-gray-500">or click to browse</p>
-                            </div>
-                            <div id="audio-file-info" class="absolute inset-0 bg-[#162e21] flex flex-col items-center justify-center z-20 hidden rounded-xl border border-primary/50">
-                                <span class="material-symbols-outlined text-4xl text-primary mb-2">check_circle</span><p class="text-white text-sm font-bold" id="audio-filename"></p>
+                    
+                    <div class="md:col-span-2 grid grid-cols-2 gap-4">
+                        
+                        <div>
+                            <label class="text-xs font-bold text-primary uppercase mb-2 block">1. Tagged MP3 (Public)</label>
+                            <div id="tagged-drop-zone" class="drop-zone h-40 w-full rounded-xl border-2 border-white/10 bg-black/20 flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 text-gray-400 hover:text-white group relative">
+                                <input type="file" id="tagged-input" accept="audio/*" class="hidden">
+                                <div class="flex flex-col items-center text-center p-2">
+                                    <span class="material-symbols-outlined text-2xl mb-1 text-primary">campaign</span>
+                                    <h4 class="text-xs font-bold text-white">Tagged Audio</h4>
+                                </div>
+                                <div id="tagged-file-info" class="absolute inset-0 bg-[#162e21] flex items-center justify-center z-20 hidden rounded-xl">
+                                    <span class="text-primary text-xs font-bold truncate px-2" id="tagged-filename"></span>
+                                </div>
                             </div>
                         </div>
+
+                        <div>
+                            <label class="text-xs font-bold text-red-400 uppercase mb-2 block">2. Untagged File (Secure)</label>
+                            <div id="audio-drop-zone" class="drop-zone h-40 w-full rounded-xl border-2 border-white/10 bg-black/20 flex flex-col items-center justify-center cursor-pointer hover:border-red-400/50 text-gray-400 hover:text-white group relative">
+                                <input type="file" id="audio-input" accept="audio/*" class="hidden">
+                                <div class="flex flex-col items-center text-center p-2">
+                                    <span class="material-symbols-outlined text-2xl mb-1 text-red-400">lock</span>
+                                    <h4 class="text-xs font-bold text-white">Secure File</h4>
+                                </div>
+                                <div id="audio-file-info" class="absolute inset-0 bg-[#162e21] flex items-center justify-center z-20 hidden rounded-xl">
+                                    <span class="text-red-400 text-xs font-bold truncate px-2" id="audio-filename"></span>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="flex flex-col gap-2"><label class="text-xs font-bold text-gray-400 uppercase">Track Title</label><input type="text" id="track-title" required class="bg-black/20 border border-white/10 rounded-lg px-4 py-3 text-white focus:ring-primary focus:border-primary"></div>
                     <div class="flex flex-col gap-2"><label class="text-xs font-bold text-gray-400 uppercase">BPM</label><input type="number" id="track-bpm" required class="bg-black/20 border border-white/10 rounded-lg px-4 py-3 text-white focus:ring-primary focus:border-primary"></div>
@@ -154,7 +176,8 @@
 
 <script>
     let uploadedImageFile = null;
-    let uploadedAudioFile = null;
+    let uploadedAudioFile = null;  // Secure (Untagged)
+    let uploadedTaggedFile = null; // Public (Tagged)
 
     // --- 1. DRAG & DROP LOGIC ---
     function setupDragDrop(zoneId, inputId, type, callback) {
@@ -179,6 +202,7 @@
         }
     }
 
+    // A. COVER ART
     setupDragDrop('image-drop-zone', 'image-input', 'image/', (file) => {
         uploadedImageFile = file;
         const reader = new FileReader();
@@ -190,64 +214,87 @@
         reader.readAsDataURL(file);
     });
 
+    // B. TAGGED AUDIO (Public)
+    setupDragDrop('tagged-drop-zone', 'tagged-input', 'audio/', (file) => {
+        uploadedTaggedFile = file;
+        document.getElementById('tagged-filename').innerText = file.name;
+        document.getElementById('tagged-file-info').classList.remove('hidden');
+    });
+
+    // C. SECURE AUDIO (Untagged)
     setupDragDrop('audio-drop-zone', 'audio-input', 'audio/', (file) => {
         uploadedAudioFile = file;
         document.getElementById('audio-filename').innerText = file.name;
         document.getElementById('audio-file-info').classList.remove('hidden');
-        document.getElementById('audio-file-info').classList.add('flex');
     });
 
-    // --- 2. UPLOAD TRACK ---
+    // --- 2. FORM SUBMISSION (UPLOAD & EDIT) ---
     const form = document.getElementById('upload-form');
     if(form) {
         form.addEventListener('submit', (e) => {
             e.preventDefault();
-            if (!uploadedImageFile || !uploadedAudioFile) { alert("Please upload both files."); return; }
+
+            const trackId = document.getElementById('edit-track-id').value;
+            const isEditMode = trackId !== "";
+
+            // Require ALL files on New Upload
+            if (!isEditMode && (!uploadedImageFile || !uploadedAudioFile || !uploadedTaggedFile)) { 
+                alert("Please upload Cover, Tagged Audio, AND Secure Audio."); return; 
+            }
 
             const formData = new FormData();
+            if(isEditMode) formData.append('track_id', trackId);
+            
             formData.append('title', document.getElementById('track-title').value);
             formData.append('bpm', document.getElementById('track-bpm').value);
             formData.append('track_key', document.getElementById('track-key').value);
             formData.append('price', document.getElementById('track-price').value);
             formData.append('tags', document.getElementById('track-tags').value);
-            formData.append('cover_image', uploadedImageFile);
-            formData.append('audio_file', uploadedAudioFile);
+            
+            if (uploadedImageFile) formData.append('cover_image', uploadedImageFile);
+            if (uploadedAudioFile) formData.append('audio_file', uploadedAudioFile);
+            if (uploadedTaggedFile) formData.append('tagged_file', uploadedTaggedFile);
 
             const submitBtn = form.querySelector('button[type="submit"]');
-            submitBtn.innerText = "Uploading...";
+            submitBtn.innerText = isEditMode ? "Saving..." : "Uploading...";
             submitBtn.disabled = true;
 
-            fetch('../includes/upload_track.php', { method: 'POST', body: formData })
+            const url = isEditMode ? '../includes/edit_track.php' : '../includes/upload_track.php';
+
+            fetch(url, { method: 'POST', body: formData })
             .then(r => r.json())
             .then(data => {
                 if(data.success) {
                     toggleModal(false);
-                    form.reset();
-                    resetUI();
-                    loadBeats();
-                    alert("Track Uploaded!");
+                    resetUI(); 
+                    loadBeats(); 
+                    alert(isEditMode ? "Track Updated!" : "Track Uploaded!");
                 } else { alert("Error: " + data.message); }
             })
-            .catch(e => alert("Upload failed. Check console."))
+            .catch(e => { console.error(e); alert("Operation failed."); })
             .finally(() => {
-                submitBtn.innerText = "Publish Beat";
+                submitBtn.innerText = isEditMode ? "Save Changes" : "Publish Beat";
                 submitBtn.disabled = false;
             });
         });
     }
 
     function resetUI() {
-        uploadedImageFile = null; uploadedAudioFile = null;
+        uploadedImageFile = null; uploadedAudioFile = null; uploadedTaggedFile = null;
+        
+        // Reset Cover
+        document.getElementById('image-preview').src = "";
         document.getElementById('image-preview').classList.add('hidden');
         document.getElementById('image-placeholder').classList.remove('hidden');
+        
+        // Reset Audios
         document.getElementById('audio-file-info').classList.add('hidden');
-        document.getElementById('audio-file-info').classList.remove('flex');
+        document.getElementById('tagged-file-info').classList.add('hidden');
     }
 
-    // --- 3. DELETE TRACK FUNCTION ---
+    // --- 3. DELETE TRACK ---
     function deleteTrack(id) {
-        if(!confirm("Are you sure you want to delete this track? This cannot be undone.")) return;
-
+        if(!confirm("Are you sure? This cannot be undone.")) return;
         fetch('../includes/delete_track.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -255,31 +302,22 @@
         })
         .then(r => r.json())
         .then(data => {
-            if(data.success) {
-                loadBeats(); // Refresh the table
-            } else {
-                alert("Error deleting: " + data.message);
-            }
+            if(data.success) loadBeats(); 
+            else alert("Error deleting: " + data.message);
         })
-        .catch(err => alert("Connection error while deleting."));
+        .catch(err => alert("Delete failed."));
     }
 
-    // --- 4. FETCH & DISPLAY BEATS ---
+    // --- 4. FETCH BEATS ---
     function loadBeats() {
         fetch('../includes/get_tracks.php')
-        .then(response => {
-            const contentType = response.headers.get("content-type");
-            if (!contentType || !contentType.includes("application/json")) {
-                throw new Error("Received HTML/Text instead of JSON.");
-            }
-            return response.json();
-        })
+        .then(r => r.json())
         .then(data => {
             const tbody = document.getElementById('beats-table-body');
             const countEl = document.getElementById('total-tracks-count');
             
             if (data.error) {
-                if(tbody) tbody.innerHTML = `<div class="p-8 text-center text-red-400 font-bold">Error: ${data.error}</div>`;
+                if(tbody) tbody.innerHTML = `<div class="p-8 text-center text-red-400">Error: ${data.error}</div>`;
                 return;
             }
 
@@ -293,12 +331,13 @@
             }
             
             data.forEach(beat => {
+                // Secure JSON for JS
+                const beatData = JSON.stringify(beat).replace(/"/g, '&quot;');
                 let imgPath = beat.cover_image;
                 if (imgPath && !imgPath.startsWith('../') && !imgPath.startsWith('http')) {
                     imgPath = '../' + imgPath; 
                 }
 
-                // Added DELETE BUTTON below
                 tbody.innerHTML += `
                 <div class="grid grid-cols-12 gap-4 p-4 items-center border-b border-white/5 hover:bg-white/5 transition-colors group">
                     <div class="col-span-5 md:col-span-4 flex items-center gap-4">
@@ -317,7 +356,7 @@
                     <div class="col-span-3 md:col-span-2 flex items-center justify-center"><span class="px-2 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-bold border border-primary/20">PUBLISHED</span></div>
                     
                     <div class="col-span-4 md:col-span-2 flex items-center justify-end gap-2 pr-2">
-                        <button class="p-2 rounded-full hover:bg-white/10 text-gray-400 hover:text-white" title="Edit">
+                        <button onclick="openEditModal(${beatData})" class="p-2 rounded-full hover:bg-white/10 text-gray-400 hover:text-white" title="Edit">
                             <span class="material-symbols-outlined text-lg">edit</span>
                         </button>
                         <button onclick="deleteTrack(${beat.id})" class="p-2 rounded-full hover:bg-red-500/20 text-gray-400 hover:text-red-500 transition-colors" title="Delete">
@@ -327,16 +366,61 @@
                 </div>`;
             });
         })
-        .catch(err => {
-            console.error(err);
-        });
+        .catch(err => console.error(err));
     }
 
-    // Modal Toggles
+    // --- 5. OPEN EDIT MODAL ---
+    function openEditModal(beat) {
+        document.querySelector('#upload-modal h3').innerText = "Edit Track";
+        document.querySelector('#upload-form button[type="submit"]').innerText = "Save Changes";
+        
+        document.getElementById('edit-track-id').value = beat.id;
+        document.getElementById('track-title').value = beat.title;
+        document.getElementById('track-bpm').value = beat.bpm;
+        document.getElementById('track-key').value = beat.track_key;
+        document.getElementById('track-price').value = beat.price;
+        document.getElementById('track-tags').value = beat.tags;
+
+        // Image Preview
+        const imgPreview = document.getElementById('image-preview');
+        const imgPlaceholder = document.getElementById('image-placeholder');
+        
+        let imgPath = beat.cover_image;
+        if (imgPath && !imgPath.startsWith('http') && !imgPath.startsWith('../')) {
+            imgPath = '../' + imgPath;
+        }
+        
+        imgPreview.src = imgPath;
+        imgPreview.classList.remove('hidden');
+        imgPlaceholder.classList.add('hidden');
+        
+        // Audio Placeholders (Reset Text)
+        document.getElementById('audio-filename').innerText = "Keep existing or upload new";
+        document.getElementById('audio-file-info').classList.remove('hidden');
+        
+        document.getElementById('tagged-filename').innerText = "Keep existing or upload new";
+        document.getElementById('tagged-file-info').classList.remove('hidden');
+
+        toggleModal(true);
+    }
+
+    // Modal Helpers
     const modal = document.getElementById('upload-modal');
     function toggleModal(s) { if(modal) { modal.classList.toggle('active', s); document.body.style.overflow = s ? 'hidden' : ''; } }
+    
+    // Open New Upload
     const openBtn = document.getElementById('open-upload-modal');
-    if(openBtn) openBtn.onclick = () => toggleModal(true);
+    if(openBtn) {
+        openBtn.onclick = () => {
+            document.querySelector('#upload-modal h3').innerText = "Upload New Track";
+            document.querySelector('#upload-form button[type="submit"]').innerText = "Publish Beat";
+            document.getElementById('edit-track-id').value = "";
+            document.getElementById('upload-form').reset();
+            resetUI();
+            toggleModal(true);
+        };
+    }
+    
     document.getElementById('close-modal-btn').onclick = () => toggleModal(false);
     document.getElementById('cancel-modal-btn').onclick = () => toggleModal(false);
     document.getElementById('modal-backdrop').onclick = () => toggleModal(false);

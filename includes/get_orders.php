@@ -1,72 +1,59 @@
 <?php
-// 1. Clean Headers & Error Handling
-error_reporting(0);
-ini_set('display_errors', 0);
+// includes/get_orders.php
 header('Content-Type: application/json');
-header("Access-Control-Allow-Origin: *");
+error_reporting(0); // Supress warnings in JSON output
 
-// 2. DIRECT CONNECTION (No external file dependency)
-$servername = "localhost";
-$username = "dabel";      
-$password = "go uni1234";          
-$dbname = "kene_admin";
+include '../db_connect.php'; // The only connection you need
 
-$response = [];
+$response = [
+    "status" => "error",
+    "orders" => [],
+    "total_revenue" => 0,
+    "best_sellers" => []
+];
 
-try {
-    $conn = new mysqli($servername, $username, $password, $dbname);
+if (isset($conn) && !$conn->connect_error) {
     
-    if ($conn->connect_error) {
-        throw new Exception("Connection failed: " . $conn->connect_error);
-    }
-
-    // 3. GET ORDERS
+    // 1. GET ALL ORDERS
     $orders = [];
     $totalRevenue = 0;
     
-    // Check if table exists first
-    $checkTable = $conn->query("SHOW TABLES LIKE 'orders'");
-    if($checkTable->num_rows > 0) {
-        $sql = "SELECT * FROM orders ORDER BY date DESC";
-        $result = $conn->query($sql);
-        
-        if ($result) {
-            while($row = $result->fetch_assoc()) {
-                $orders[] = $row;
-                $totalRevenue += floatval($row['price']);
-            }
+    $sql = "SELECT * FROM orders ORDER BY date DESC";
+    $result = $conn->query($sql);
+    
+    if ($result) {
+        while($row = $result->fetch_assoc()) {
+            $orders[] = $row;
+            $totalRevenue += floatval($row['price']);
         }
     }
 
-    // 4. GET BEST SELLERS
+    // 2. GET BEST SELLERS
     $bestSellers = [];
-    if($checkTable->num_rows > 0) {
-        $sql = "SELECT track_title, COUNT(*) as sales_count, SUM(price) as revenue 
+    $sqlBest = "SELECT track_title, COUNT(*) as sales_count, SUM(price) as revenue 
                 FROM orders 
                 GROUP BY track_title 
                 ORDER BY sales_count DESC 
                 LIMIT 5";
-        $result = $conn->query($sql);
-        
-        if ($result) {
-            while($row = $result->fetch_assoc()) {
-                $bestSellers[] = $row;
-            }
+    $resultBest = $conn->query($sqlBest);
+    
+    if ($resultBest) {
+        while($row = $resultBest->fetch_assoc()) {
+            $bestSellers[] = $row;
         }
     }
 
-    // 5. Send Data
-    echo json_encode([
+    // 3. SUCCESS RESPONSE
+    $response = [
         "status" => "success",
         "orders" => $orders,
         "total_revenue" => $totalRevenue,
         "best_sellers" => $bestSellers
-    ]);
-
-} catch (Exception $e) {
-    echo json_encode([
-        "status" => "error", 
-        "message" => $e->getMessage()
-    ]);
+    ];
+} else {
+    $response['message'] = "Database connection failed.";
 }
+
+echo json_encode($response);
+$conn->close();
 ?>
