@@ -1,11 +1,7 @@
 <?php
-// 1. DIRECT DATABASE CONNECTION
-$servername = "localhost";
-$username = "dabel";
-$password = "go uni1234";
-$dbname = "kene_admin";
-
-$conn = new mysqli($servername, $username, $password, $dbname);
+// 1. SECURE CONNECTION
+// Go up one level to find db_connect.php
+include '../db_connect.php'; 
 
 // Initialize Default Values
 $totalRevenue = 0;

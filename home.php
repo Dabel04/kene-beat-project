@@ -1,8 +1,8 @@
 <?php
-// Just include the header. It handles Session, DB connection, and Navbar.
 include 'header.php';
 
-// --- FETCH DATA FOR THIS PAGE ---
+// --- FETCH DATA ---
+// We explicitly ask for tagged_file now
 $sql = "SELECT * FROM tracks ORDER BY id DESC LIMIT 8";
 $result = $conn->query($sql);
 $tracks = [];
@@ -34,6 +34,10 @@ if ($result->num_rows > 0) {
     <div class="slider-container">
         <?php if (count($tracks) > 0): ?>
             <?php foreach ($tracks as $track): ?>
+                <?php 
+                    // SECURITY FIX: Serve Tagged file if it exists
+                    $previewAudio = !empty($track['tagged_file']) ? $track['tagged_file'] : $track['audio_file'];
+                ?>
                 <div class="card" data-track-id="beat<?php echo $track['id']; ?>">
                     <a href="beatdetail.php?id=<?php echo $track['id']; ?>">
                         <img src="<?php echo $track['cover_image']; ?>" alt="<?php echo $track['title']; ?>" onerror="this.src='https://via.placeholder.com/300'">
@@ -56,7 +60,7 @@ if ($result->num_rows > 0) {
                         <div class="music-visualizer">
                             <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
                         </div>
-                        <audio src="<?php echo $track['audio_file']; ?>"></audio>
+                        <audio src="<?php echo $previewAudio; ?>"></audio>
                     </div>
                 </div>
             <?php endforeach; ?>
@@ -71,6 +75,9 @@ if ($result->num_rows > 0) {
     <div class="tracks-grid">
         <?php if (count($tracks) > 0): ?>
             <?php foreach ($tracks as $track): ?>
+                <?php 
+                    $previewAudio = !empty($track['tagged_file']) ? $track['tagged_file'] : $track['audio_file'];
+                ?>
                 <div class="track-card" data-track-id="grid<?php echo $track['id']; ?>">
                     <div class="track-image">
                         <a href="beatdetail.php?id=<?php echo $track['id']; ?>">
@@ -102,14 +109,11 @@ if ($result->num_rows > 0) {
                             </button>
                         </div>
                     </div>
-                    <audio src="<?php echo $track['audio_file']; ?>"></audio>
+                    <audio src="<?php echo $previewAudio; ?>"></audio>
                 </div>
             <?php endforeach; ?>
         <?php endif; ?>
     </div>
 </section>
 
-<?php
-// Include the footer. It has the player, scripts, and closing body tags.
-include 'footer.php';
-?>
+<?php include 'footer.php'; ?>

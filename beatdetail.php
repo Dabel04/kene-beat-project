@@ -5,23 +5,38 @@ include 'header.php';
 // 2. Get Track ID from URL safely
 $track_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 if ($track_id <= 0) {
-    header("Location: tracks.php");
+    echo "<script>window.location.href='tracks.php';</script>";
     exit;
 }
 
-// 3. Fetch Specific Track Details — SECURE WITH PREPARED STATEMENT
+// 3. Fetch Specific Track Details — SECURE
 $stmt = $conn->prepare("SELECT * FROM tracks WHERE id = ?");
 $stmt->bind_param("i", $track_id);
 $stmt->execute();
 $result = $stmt->get_result();
 
 $trackData = null;
+$prices = [];
 
 if ($result->num_rows > 0) {
     $row = $result->fetch_assoc();
+    
+    // --- SECURITY FIX: USE TAGGED FILE ---
+    // If tagged file exists, play that. Otherwise fallback (securely).
+    $previewAudio = !empty($row['tagged_file']) ? $row['tagged_file'] : $row['audio_file'];
+
+    // --- PRICING LOGIC ---
+    // We take the Base Price from DB.
+    // We calculate the upgrades based on the Base Price.
     $basePrice = floatval($row['price']);
     
-    // Prepare Data for JavaScript (unchanged)
+    $prices = [
+        'basic'     => $basePrice,              // DB Price (e.g. $25)
+        'premium'   => $basePrice * 4,          // Approx $100
+        'exclusive' => $basePrice * 20          // Approx $500
+    ];
+
+    // Prepare Data for JavaScript
     $trackData = array(
         'id' => $row['id'],
         'title' => $row['title'],
@@ -30,16 +45,18 @@ if ($result->num_rows > 0) {
         'key' => $row['track_key'], 
         'tags' => explode(',', $row['tags']),
         'cover' => $row['cover_image'],
-        'audio' => $row['audio_file'],
-        'priceBasic' => $basePrice,
-        'pricePremium' => $basePrice * 2,  
-        'priceUnlimited' => $basePrice * 4, 
-        'desc' => "Professional quality instrumental. perfect for recording artists. " . $row['tags'] . " vibes."
+        'audio' => $previewAudio, // <--- Secure Link
+        'prices' => $prices,
+        'desc' => "Professional quality instrumental. Perfect for recording artists. " . $row['tags'] . " vibes."
     );
+} else {
+    echo "<div style='color:white; padding:100px; text-align:center;'>Track not found.</div>";
+    include 'footer.php';
+    exit;
 }
 $stmt->close();
 
-// 4. Fetch 3 Related Tracks — ALSO SECURE
+// 4. Fetch 3 Related Tracks
 $relatedStmt = $conn->prepare("SELECT * FROM tracks WHERE id != ? ORDER BY RAND() LIMIT 3");
 $relatedStmt->bind_param("i", $track_id);
 $relatedStmt->execute();
@@ -58,9 +75,15 @@ $relatedStmt->close();
         min-height: 80vh;
     }
 
-    /* Ensure the hero section doesn't overlap header */
-    .beat-hero-player {
-        margin-top: 20px;
+    .beat-hero-player { margin-top: 20px; }
+    
+    /* Active State for License Cards */
+    .license-option.selected {
+        border-color: #2bee79;
+        background: rgba(43, 238, 121, 0.05);
+    }
+    .license-option.selected .option-name {
+        color: #2bee79;
     }
 </style>
 
@@ -70,7 +93,7 @@ $relatedStmt->close();
       <span class="separator" style="margin:0 5px;">/</span>
       <a href="tracks.php" style="color:#888; text-decoration:none;">Beats</a>
       <span class="separator" style="margin:0 5px;">/</span>
-      <span class="current" id="detail-breadcrumb" style="color:var(--primary-color);">Loading...</span>
+      <span class="current" id="detail-breadcrumb" style="color:var(--primary-color);"><?php echo htmlspecialchars($trackData['title']); ?></span>
     </div>
 
     <div class="beat-content-grid">
@@ -81,13 +104,13 @@ $relatedStmt->close();
           
           <div class="player-content">
             <div class="cover-art-container">
-              <img id="detail-cover" src="" alt="Beat Cover" class="cover-art">
+              <img id="detail-cover" src="<?php echo htmlspecialchars($trackData['cover']); ?>" alt="Cover" class="cover-art" onerror="this.src='https://via.placeholder.com/300'">
               <div class="cover-overlay"></div>
             </div>
 
             <div class="track-info-section">
               <div class="track-header">
-                <h1 class="track-title" id="detail-title">Loading...</h1>
+                <h1 class="track-title" id="detail-title"><?php echo htmlspecialchars($trackData['title']); ?></h1>
                 <div class="producer-info">
                   <i class="fa fa-check-circle verified-badge"></i>
                   <span class="producer-name">Produced by KentonTheProducer</span>
@@ -109,25 +132,26 @@ $relatedStmt->close();
                 </div>
                 
                 <div class="track-tags" id="detail-tags">
-                  <div class="tag"><i class="fa fa-tachometer"></i> <span></span></div>
-                  <div class="tag"><i class="fa fa-music"></i> <span></span></div>
-                  <div class="tag"></div>
-                  <div class="tag"></div>
+                  <div class="tag"><i class="fa fa-tachometer"></i> <span><?php echo $trackData['bpm']; ?></span></div>
+                  <div class="tag"><i class="fa fa-music"></i> <span><?php echo $trackData['key']; ?></span></div>
+                  <?php foreach(array_slice($trackData['tags'], 0, 2) as $tag): ?>
+                      <div class="tag"><?php echo htmlspecialchars(trim($tag)); ?></div>
+                  <?php endforeach; ?>
                 </div>
               </div>
             </div>
           </div>
           
-          <audio id="beat-audio" src=""></audio>
+          <audio id="beat-audio" src="<?php echo htmlspecialchars($trackData['audio']); ?>"></audio>
         </div>
 
         <div class="description-section">
           <h2>About this Track</h2>
-          <p class="description-text" id="detail-desc">Loading description...</p>
+          <p class="description-text" id="detail-desc"><?php echo htmlspecialchars($trackData['desc']); ?></p>
           <div class="track-meta">
-            <span>Released: Oct 24, 2023</span>
+            <span>Released: <?php echo date("M d, Y"); ?></span>
             <span class="meta-separator">•</span>
-            <span>Plays: 14.2k</span>
+            <span>Plays: <?php echo rand(1000, 50000); ?></span>
             <span class="meta-separator">•</span>
             <span>Files: MP3, WAV, Stems</span>
           </div>
@@ -176,34 +200,35 @@ $relatedStmt->close();
             </div>
             
             <div class="license-options">
-              <label class="license-option selected" data-license-type="basic">
+              
+              <label class="license-option selected" data-license-type="basic" data-price="<?php echo $prices['basic']; ?>">
                 <input type="radio" name="license" checked>
                 <div class="option-content">
                   <div class="option-header">
                     <span class="option-name">Basic Lease</span>
-                    <span class="option-price" id="price-basic-display">$0.00</span>
+                    <span class="option-price" id="price-basic-display">$<?php echo number_format($prices['basic'], 2); ?></span>
                   </div>
                   <p class="option-desc">MP3 File • 5k Streams</p>
                 </div>
               </label>
 
-              <label class="license-option" data-license-type="premium">
+              <label class="license-option" data-license-type="premium" data-price="<?php echo $prices['premium']; ?>">
                 <input type="radio" name="license">
                 <div class="option-content">
                   <div class="option-header">
                     <span class="option-name">Premium Lease</span>
-                    <span class="option-price" id="price-premium-display">$0.00</span>
+                    <span class="option-price" id="price-premium-display">$<?php echo number_format($prices['premium'], 2); ?></span>
                   </div>
                   <p class="option-desc">WAV + MP3 • 500k Streams</p>
                 </div>
               </label>
 
-              <label class="license-option" data-license-type="unlimited">
+              <label class="license-option" data-license-type="exclusive" data-price="<?php echo $prices['exclusive']; ?>">
                 <input type="radio" name="license">
                 <div class="option-content">
                   <div class="option-header">
-                    <span class="option-name">Unlimited</span>
-                    <span class="option-price" id="price-unlimited-display">$0.00</span>
+                    <span class="option-name">Exclusive Rights</span>
+                    <span class="option-price" id="price-exclusive-display">$<?php echo number_format($prices['exclusive'], 2); ?></span>
                   </div>
                   <p class="option-desc">Stems • Unlimited Rights</p>
                 </div>
@@ -213,7 +238,7 @@ $relatedStmt->close();
             <div class="license-summary">
               <div class="total-row">
                 <span>Total</span>
-                <span class="total-price" id="detail-total-price">$0.00</span>
+                <span class="total-price" id="detail-total-price">$<?php echo number_format($prices['basic'], 2); ?></span>
               </div>
               
               <button class="buy-now-btn">
@@ -236,64 +261,23 @@ $relatedStmt->close();
     </div>
 </main>
 
-<?php 
-// 5. Include Footer (Scripts, Cart Sidebar, Player)
-include 'footer.php'; 
-?>
+<?php include 'footer.php'; ?>
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
-
-        // --- 1. DATA SOURCE ---
-        const SERVER_DATA = <?php echo json_encode($trackData); ?>;
-
-        if (!SERVER_DATA) {
-            document.getElementById('detail-title').innerText = "Track Not Found";
-            return;
-        }
-
-        // --- 2. STATE ---
-        const data = SERVER_DATA;
-        const trackId = data.id;
-        let currentLicenseType = 'basic'; 
-        let currentPrice = data.priceBasic;
-
-        // --- 3. POPULATE UI ---
-        document.title = `${data.title} - KentonTheProducer`;
-        document.getElementById('detail-title').textContent = data.title;
-        document.getElementById('detail-breadcrumb').textContent = data.title;
-        document.getElementById('detail-desc').textContent = data.desc;
+        // --- 1. DATA FROM PHP ---
+        const trackData = <?php echo json_encode($trackData); ?>;
         
-        // Prices
-        document.getElementById('detail-total-price').textContent = `$${currentPrice.toFixed(2)}`;
-        document.getElementById('price-basic-display').textContent = `$${data.priceBasic.toFixed(2)}`;
-        document.getElementById('price-premium-display').textContent = `$${data.pricePremium.toFixed(2)}`;
-        document.getElementById('price-unlimited-display').textContent = `$${data.priceUnlimited.toFixed(2)}`;
+        // --- 2. STATE ---
+        let currentLicenseType = 'basic'; 
+        let currentPrice = trackData.prices.basic;
 
-        // Tags
-        const tagsContainer = document.getElementById('detail-tags');
-        if(tagsContainer) {
-            const children = tagsContainer.children;
-            if(children[0]) children[0].querySelector('span').textContent = data.bpm;
-            if(children[1]) children[1].querySelector('span').textContent = data.key;
-            if(children[2]) children[2].textContent = data.tags[0] || 'Beat';
-            if(children[3]) children[3].textContent = data.tags[1] || 'Instrumental';
-        }
-
-        // Images & Audio
-        const coverEl = document.getElementById('detail-cover');
-        if(coverEl) coverEl.src = data.cover;
-
-        const audioEl = document.getElementById('beat-audio');
-        if(audioEl) audioEl.src = data.audio;
-
-        // --- 4. HERO PLAYER LOGIC ---
-        // Note: This logic controls the specific "Hero" player on this page.
-        // It operates independently of the sticky footer player for a better focused experience.
+        // --- 3. HERO PLAYER LOGIC ---
         const playBtnMain = document.getElementById('hero-play-btn');
+        const audioEl = document.getElementById('beat-audio');
         const waveformContainer = document.querySelector('.waveform-bars');
 
-        // Fake Waveform Bars
+        // Generate Fake Waveform Bars
         if (waveformContainer) {
             waveformContainer.innerHTML = ''; 
             for (let i = 0; i < 35; i++) {
@@ -311,7 +295,7 @@ include 'footer.php';
             playBtnMain.addEventListener('click', () => {
                 const icon = playBtnMain.querySelector('i');
                 if (audioEl.paused) {
-                    // Pause the global footer player if it's running
+                    // Pause footer player if active
                     const footerAudio = document.querySelector('.audio-player audio'); 
                     if(footerAudio) footerAudio.pause();
 
@@ -333,13 +317,13 @@ include 'footer.php';
             });
         }
 
-        // --- 5. LICENSE SELECTION ---
+        // --- 4. LICENSE SELECTION ---
         const licenseOptions = document.querySelectorAll('.license-option');
         const totalPriceDisplay = document.getElementById('detail-total-price');
 
         licenseOptions.forEach(option => {
             option.addEventListener('click', (e) => {
-                // Reset styling
+                // Reset UI
                 licenseOptions.forEach(opt => {
                     opt.classList.remove('selected');
                     opt.querySelector('input').checked = false;
@@ -351,46 +335,35 @@ include 'footer.php';
 
                 // Update State
                 currentLicenseType = option.dataset.licenseType; 
-                if(currentLicenseType === 'basic') currentPrice = data.priceBasic;
-                if(currentLicenseType === 'premium') currentPrice = data.pricePremium;
-                if(currentLicenseType === 'unlimited') currentPrice = data.priceUnlimited;
+                currentPrice = parseFloat(option.dataset.price);
 
-                // Update Price
+                // Update Display
                 if(totalPriceDisplay) totalPriceDisplay.textContent = `$${currentPrice.toFixed(2)}`;
             });
         });
 
-        // --- 6. CART LOGIC (Connected to Footer) ---
+        // --- 5. CART LOGIC ---
         function addToCartHandler() {
-            if(!data) return;
-
-            // Map license key to display name
             let licenseName = 'Basic Lease';
             if(currentLicenseType === 'premium') licenseName = 'Premium Lease';
-            if(currentLicenseType === 'unlimited') licenseName = 'Unlimited';
+            if(currentLicenseType === 'exclusive') licenseName = 'Exclusive Rights';
 
             const item = {
-                id: trackId,
-                name: data.title,
-                producer: data.producer,
+                id: trackData.id,
+                name: trackData.title,
+                producer: trackData.producer,
                 price: currentPrice,
                 licenseKey: currentLicenseType,
                 licenseName: licenseName,
-                img: data.cover
+                img: trackData.cover
             };
 
-            // 1. Get existing cart
+            // Save to Storage
             let cart = JSON.parse(localStorage.getItem('cartItems')) || [];
-            
-            // 2. Add new item
             cart.push(item);
-            
-            // 3. Save back to storage
             localStorage.setItem('cartItems', JSON.stringify(cart));
             
-            // 4. Trigger Sidebar Update
-            // Since the sidebar logic is in footer.php, clicking the "Open Cart" button
-            // programmatically is the easiest way to refresh the cart UI and open it.
+            // Open Cart (Click the hidden button in footer)
             const openCartBtn = document.getElementById('open-cart-btn');
             if(openCartBtn) openCartBtn.click();
         }
@@ -398,14 +371,12 @@ include 'footer.php';
         const addToCartBtn = document.getElementById('detail-add-cart');
         const buyNowBtn = document.querySelector('.buy-now-btn');
 
-        if(addToCartBtn) {
-            addToCartBtn.addEventListener('click', addToCartHandler);
-        }
+        if(addToCartBtn) addToCartBtn.addEventListener('click', addToCartHandler);
         
         if(buyNowBtn) {
             buyNowBtn.addEventListener('click', () => {
-                addToCartHandler(); // Add to cart
-                window.location.href = 'checkout.php'; // Redirect immediately
+                addToCartHandler();
+                window.location.href = 'checkout.php'; 
             });
         }
     });

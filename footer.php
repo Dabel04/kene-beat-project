@@ -58,7 +58,7 @@
     z-index: 3000;
     display: none;
     justify-content: center;
-    align-items: center; /* Center vertically on Desktop */
+    align-items: center; 
     padding: 20px;
 }
 
@@ -72,7 +72,7 @@
     animation: slideUp 0.3s ease-out;
     display: flex;
     flex-direction: column;
-    max-height: 90vh; /* Keeps it within viewport */
+    max-height: 90vh;
 }
 
 @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
@@ -84,7 +84,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    flex-shrink: 0; /* Prevents header from shrinking */
+    flex-shrink: 0;
 }
 
 .options-header h3 { margin: 0; color: white; font-size: 18px; font-weight: 700; }
@@ -92,41 +92,19 @@
 .options-body {
     padding: 30px;
     background: #080808;
-    overflow-y: auto; /* ENABLE SCROLLING */
-    /* GRID FOR LAPTOP */
+    overflow-y: auto; 
     display: grid;
     grid-template-columns: repeat(3, 1fr); 
     gap: 20px;
 }
 
-/* MOBILE MODAL ADJUSTMENTS */
 @media (max-width: 991px) {
-    .modal-overlay {
-        align-items: flex-end; /* Stick to bottom on mobile */
-        padding: 0;
-    }
-
-    .options-modal {
-        max-width: 100%;
-        border-radius: 15px 15px 0 0; /* Rounded top only */
-        max-height: 85vh; /* Takes up 85% of screen */
-        border-bottom: none;
-    }
-
-    .options-body {
-        display: flex; /* Stack cards vertically */
-        flex-direction: column;
-        padding: 20px;
-        gap: 15px;
-    }
-
-    /* Make cards shorter on mobile for easier scrolling */
-    .license-option-card {
-        padding: 20px; 
-    }
+    .modal-overlay { align-items: flex-end; padding: 0; }
+    .options-modal { max-width: 100%; border-radius: 15px 15px 0 0; max-height: 85vh; border-bottom: none; }
+    .options-body { display: flex; flex-direction: column; padding: 20px; gap: 15px; }
+    .license-option-card { padding: 20px; }
 }
 
-/* CLICKABLE CARD STYLES */
 .license-option-card {
     background: #131313;
     border: 1px solid #222;
@@ -145,7 +123,7 @@
 .license-option-card:hover, .license-option-card:active {
     border-color: #2bee79;
     background: #181818;
-    transform: translateY(-2px); /* Smaller lift on mobile */
+    transform: translateY(-2px);
 }
 
 .license-name { color: #fff; font-size: 18px; font-weight: 800; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 1px; }
@@ -186,11 +164,7 @@
     border-radius: 20px;
 }
 
-.license-option-card:hover .select-label {
-    background: #2bee79;
-    color: black;
-    border-color: #2bee79;
-}
+.license-option-card:hover .select-label { background: #2bee79; color: black; border-color: #2bee79; }
 
 .recommended-badge {
     position: absolute;
@@ -237,8 +211,8 @@
                 <ul class="footer-links-list">
                     <li><a href="home.php">Home</a></li>
                     <li><a href="tracks.php">Beat Catalog</a></li>
-                    <li><a href="services.php">Sound Kits</a></li>
-                    <li><a href="services.php">Services</a></li>
+                    <li><a href="#">Sound Kits</a></li>
+                    <li><a href="#">Services</a></li>
                 </ul>
             </div>
             <div class="footer-col">
@@ -340,8 +314,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 2. CART LOGIC
+    // 2. CART LOGIC (Server Sync Edition)
     let cart = JSON.parse(localStorage.getItem('cartItems')) || [];
+    // PHP Session Check (Injected by PHP)
+    const isLoggedIn = <?php echo isset($_SESSION['user_id']) ? 'true' : 'false'; ?>;
+    
     const cartCountElement = document.getElementById('cart-count');
     const cartSidebar = document.getElementById('cart-sidebar');
     const cartItemsContainer = document.getElementById('cart-items-container');
@@ -350,8 +327,51 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeCartBtn = document.getElementById('close-cart-btn');
     const checkoutBtn = document.querySelector('.btn-checkout');
 
+    // --- SYNC FUNCTION ---
+    function saveCartState() {
+        // 1. Save Local
+        localStorage.setItem('cartItems', JSON.stringify(cart));
+        updateCartCount();
+        
+        // 2. Save Server (If Logged In)
+        if (isLoggedIn) {
+            fetch('includes/save_cart.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ cart: cart })
+            }).catch(err => console.error("Sync failed", err));
+        }
+    }
+
+    // --- INITIAL LOAD ---
+    function initCart() {
+        if (isLoggedIn) {
+            // If logged in, Server is the source of truth
+            fetch('includes/get_cart.php')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success && data.items.length > 0) {
+                        // Merge or Replace? Let's Replace for consistency
+                        cart = data.items.map(item => ({
+                            ...item,
+                            licenseKey: item.license_type // Ensure key exists
+                        }));
+                        saveCartState(); // Update local storage to match server
+                        renderCart();
+                    } else {
+                        // Server empty? Keep local
+                        renderCart();
+                    }
+                })
+                .catch(err => console.log('Cart fetch skipped/failed'));
+        } else {
+            renderCart();
+        }
+        updateCartCount();
+    }
+
     function updateCartCount() { if(cartCountElement) cartCountElement.textContent = cart.length; }
-    function calculateCartTotal() { return cart.reduce((sum, item) => sum + item.price, 0).toFixed(2); }
+    function calculateCartTotal() { return cart.reduce((sum, item) => sum + parseFloat(item.price), 0).toFixed(2); }
 
     function renderCart() {
         if (!cartItemsContainer) return;
@@ -362,24 +382,28 @@ document.addEventListener('DOMContentLoaded', () => {
             cart.forEach((item, index) => {
                 const itemEl = document.createElement('div');
                 itemEl.classList.add('cart-item');
-                const imgUrl = item.img || 'https://via.placeholder.com/60?text=Beat';
+                // Handle different image property names (server vs local)
+                const imgUrl = item.img || item.cover || 'https://via.placeholder.com/60?text=Beat';
+                
                 itemEl.innerHTML = `
-                    <img src="${imgUrl}" class="cart-item-img" alt="Cover">
+                    <img src="${imgUrl}" class="cart-item-img" alt="Cover" onerror="this.src='https://via.placeholder.com/60'">
                     <div class="cart-item-info">
-                        <h4 class="cart-item-title">${item.name}</h4>
+                        <h4 class="cart-item-title">${item.name || item.title}</h4>
                         <span class="cart-item-license">${item.licenseName}</span>
-                        <span class="cart-item-price">$${item.price.toFixed(2)}</span>
+                        <span class="cart-item-price">$${parseFloat(item.price).toFixed(2)}</span>
                     </div>
                     <button class="remove-item-btn" data-index="${index}"><i class="fa fa-trash"></i></button>
                 `;
                 cartItemsContainer.appendChild(itemEl);
             });
+            
+            // Attach Remove Listeners
             cartItemsContainer.querySelectorAll('.remove-item-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
-                    const idx = e.target.closest('.remove-item-btn').dataset.index;
-                    cart.splice(parseInt(idx), 1);
-                    localStorage.setItem('cartItems', JSON.stringify(cart));
-                    updateCartCount(); renderCart();
+                    const idx = parseInt(e.currentTarget.dataset.index);
+                    cart.splice(idx, 1);
+                    saveCartState(); // <--- TRIGGERS SERVER SAVE
+                    renderCart();
                 });
             });
         }
@@ -389,7 +413,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (openCartBtn) openCartBtn.addEventListener('click', () => { cartSidebar.classList.add('open'); renderCart(); });
     if (closeCartBtn) closeCartBtn.addEventListener('click', () => cartSidebar.classList.remove('open'));
     if (checkoutBtn) checkoutBtn.addEventListener('click', () => { cart.length > 0 ? window.location.href = 'checkout.php' : alert("Cart is empty!"); });
-    updateCartCount();
+    
+    // Call Init
+    initCart();
 
     // 3. PRICING MODAL LOGIC (Responsive Cards)
     const LICENSES = {
@@ -441,12 +467,9 @@ document.addEventListener('DOMContentLoaded', () => {
         keys.forEach(key => {
             const license = LICENSES[key];
             const div = document.createElement('div');
-            
-            // Set DATA-KEY on the CARD itself
             div.className = 'license-option-card';
             div.dataset.key = key; 
 
-            // Build Features
             let featuresHTML = '';
             license.features.forEach(feat => { featuresHTML += `<li><i class="fa fa-check"></i> ${feat}</li>`; });
             const badge = license.recommended ? '<div class="recommended-badge">Best Value</div>' : '';
@@ -461,7 +484,6 @@ document.addEventListener('DOMContentLoaded', () => {
             optionsContainer.appendChild(div);
         });
         
-        // Attach Logic to the CARD click
         optionsContainer.querySelectorAll('.license-option-card').forEach(card => {
             card.addEventListener('click', (e) => {
                 const key = card.dataset.key;
@@ -469,8 +491,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     id: currentTrackData.id, name: currentTrackData.name, producer: currentTrackData.producer,
                     price: LICENSES[key].price, licenseKey: key, licenseName: LICENSES[key].name, img: currentTrackData.img
                 });
-                localStorage.setItem('cartItems', JSON.stringify(cart));
-                updateCartCount();
+                // USE SAVE STATE HERE
+                saveCartState(); 
+                
                 optionsModalOverlay.style.display = 'none';
                 cartSidebar.classList.add('open'); renderCart();
             });
