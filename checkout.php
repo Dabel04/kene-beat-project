@@ -239,7 +239,7 @@ $currentEmail = isset($_SESSION['email']) ? $_SESSION['email'] : 'user@example.c
           updateTotals(0);
       }
 
-      // RENDER
+      // RENDER (Fixed for Kits)
       window.renderCheckout = function() {
         cartList.innerHTML = '';
         let total = 0;
@@ -251,12 +251,29 @@ $currentEmail = isset($_SESSION['email']) ? $_SESSION['email'] : 'user@example.c
 
         cartData.forEach((item, index) => {
             total += parseFloat(item.price);
+            
+            // --- LOGIC: Handle Kits vs Beats ---
+            let metaHtml = '';
+            if (item.type === 'kit') {
+                // It's a Kit
+                metaHtml = `
+                    <span>Sound Kit</span> • 
+                    <span style="color:#2bee79; font-weight:bold;">Royalty Free</span>
+                `;
+            } else {
+                // It's a Beat
+                metaHtml = `
+                    <span>${item.producer || 'Kenton'}</span> • 
+                    <span style="color:#2bee79;">${item.licenseName || 'Basic License'}</span>
+                `;
+            }
+
             const el = document.createElement('div');
             el.className = 'cart-item';
             el.innerHTML = `
                 <div class="cart-item-content" style="display:flex; gap:15px; align-items:center; flex:1;">
                     <div class="cart-item-image" style="position:relative; width:60px; height:60px;">
-                        <img src="${item.img || 'https://via.placeholder.com/60'}" style="width:100%; height:100%; object-fit:cover; border-radius:6px;">
+                        <img src="${item.img || 'https://via.placeholder.com/60'}" style="width:100%; height:100%; object-fit:cover; border-radius:6px;" onerror="this.src='image/disk.png'">
                         <div class="image-overlay js-play-checkout" data-index="${index}">
                             <i class="fas fa-play"></i>
                         </div>
@@ -264,8 +281,7 @@ $currentEmail = isset($_SESSION['email']) ? $_SESSION['email'] : 'user@example.c
                     <div class="cart-item-info">
                         <h4 style="margin:0; color:white; font-size:16px;">${item.name || item.title}</h4>
                         <div class="item-meta" style="font-size:12px; color:#888;">
-                            <span>${item.producer || 'Kenton'}</span> • 
-                            <span style="color:#2bee79;">${item.licenseName}</span>
+                            ${metaHtml}
                         </div>
                     </div>
                 </div>
@@ -307,19 +323,13 @@ $currentEmail = isset($_SESSION['email']) ? $_SESSION['email'] : 'user@example.c
           if (playBtn) {
               const index = playBtn.dataset.index;
               const track = cartData[index];
-              // Assuming 'loadTrack' is the function in your footer.php
               if (window.loadTrack && track) {
-                  // We construct a track object that matches what footer expects
-                  // get_cart.php returns 'name', 'img', 'producer'. 
-                  // If 'audio' isn't in DB, we might default to demo or need to fix get_cart.
                   window.loadTrack({
                       title: track.name || track.title,
                       artist: track.producer || 'Kenton',
                       cover: track.img,
-                      audio: track.audio || '#' // Needs audio link from DB
+                      audio: track.audio || '#' 
                   });
-              } else {
-                  console.log("Player not found or track missing audio");
               }
           }
       });
@@ -380,7 +390,7 @@ $currentEmail = isset($_SESSION['email']) ? $_SESSION['email'] : 'user@example.c
               .then(data => {
                   if(data.status === 'success') {
                       localStorage.removeItem('cartItems'); 
-                      window.location.href = 'user-dashboard.php';
+                      window.location.href = 'user-dashboard.php?success=1';
                   } else {
                       throw new Error(data.message);
                   }

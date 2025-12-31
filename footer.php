@@ -102,8 +102,8 @@
                 <ul class="footer-links-list">
                     <li><a href="home.php">Home</a></li>
                     <li><a href="tracks.php">Beat Catalog</a></li>
-                    <li><a href="#">Sound Kits</a></li>
-                    <li><a href="#">Services</a></li>
+                    <li><a href="kits.php">Sound Kits</a></li>
+                    <li><a href="services.php">Services</a></li>
                 </ul>
             </div>
             <div class="footer-col">
@@ -111,7 +111,7 @@
                 <ul class="footer-links-list">
                     <li><a href="about.php">About Me</a></li>
                     <li><a href="contact.php">Contact</a></li>
-                    <li><a href="#">Licensing Info</a></li>
+                    <li><a href="licensing.php">Licensing Info</a></li>
                     <li><a href="#">Terms of Service</a></li>
                 </ul>
             </div>
@@ -192,7 +192,7 @@
 <script>
 document.addEventListener('DOMContentLoaded', () => {
 
-    // 1. MOBILE MENU
+    // --- 1. MOBILE MENU ---
     const mobileBtn = document.getElementById('mobile-menu-btn');
     const navLinks = document.getElementById('nav-links');
     if(mobileBtn){
@@ -204,7 +204,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 2. AUDIO PLAYER LOGIC
+    // --- 2. AUDIO PLAYER ---
     const audioPlayer = document.querySelector('.audio-player');
     const playPauseBtn = audioPlayer.querySelector('.play-pause-btn');
     const playPauseIcon = playPauseBtn ? playPauseBtn.querySelector('i') : null;
@@ -301,7 +301,29 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 3. CART LOGIC (Fixed Empty State)
+    // --- 3. GLOBAL ADD TO CART (Fix for Sound Kits) ---
+    // This allows kits.php to call window.addToCart({...})
+    window.addToCart = function(item) {
+        let cart = JSON.parse(localStorage.getItem('cartItems')) || [];
+        
+        // Prevent duplicate kits (optional)
+        if (item.type === 'kit') {
+            const exists = cart.find(i => i.id === item.id);
+            if (exists) {
+                alert("This kit is already in your cart!");
+                // Open Sidebar
+                cartSidebar.classList.add('open');
+                return;
+            }
+        }
+
+        cart.push(item);
+        saveCartState(cart);
+        renderCart();
+        cartSidebar.classList.add('open');
+    };
+
+    // --- 4. CART SYSTEM (Internal) ---
     let cart = JSON.parse(localStorage.getItem('cartItems')) || [];
     const isLoggedIn = <?php echo isset($_SESSION['user_id']) ? 'true' : 'false'; ?>;
     
@@ -313,16 +335,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeCartBtn = document.getElementById('close-cart-btn');
     const checkoutBtn = document.querySelector('.btn-checkout');
 
-    function saveCartState() {
+    function saveCartState(updatedCart) {
+        if(updatedCart) cart = updatedCart;
         localStorage.setItem('cartItems', JSON.stringify(cart));
         updateCartCount();
-        if (isLoggedIn) {
-            fetch('includes/save_cart.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ cart: cart })
-            }).catch(err => console.error("Sync failed", err));
-        }
+        
+        // Sync with PHP
+        fetch('includes/save_cart.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ cart: cart })
+        }).catch(err => console.error("Sync failed", err));
     }
 
     function initCart() {
@@ -330,14 +353,13 @@ document.addEventListener('DOMContentLoaded', () => {
             fetch('includes/get_cart.php')
                 .then(res => res.json())
                 .then(data => {
-                    // --- CRITICAL FIX: TRUST SERVER ALWAYS ---
                     if (data.success) {
                         const serverItems = data.items || [];
                         cart = serverItems.map(item => ({
                             ...item,
                             licenseKey: item.licenseKey || item.license_type || 'basic'
                         }));
-                        saveCartState(); 
+                        localStorage.setItem('cartItems', JSON.stringify(cart));
                         renderCart();
                     }
                 })
@@ -360,13 +382,21 @@ document.addEventListener('DOMContentLoaded', () => {
             cart.forEach((item, index) => {
                 const itemEl = document.createElement('div');
                 itemEl.classList.add('cart-item');
-                const imgUrl = item.img || item.cover || 'https://via.placeholder.com/60?text=Beat';
+                const imgUrl = item.img || item.cover || 'https://via.placeholder.com/60?text=Item';
                 
+                // LICENSE DISPLAY LOGIC
+                let licenseHtml = '';
+                if(item.type === 'kit') {
+                    licenseHtml = `<span class="cart-item-license" style="color:#2bee79; font-weight:bold;">Sound Kit (Royalty Free)</span>`;
+                } else {
+                    licenseHtml = `<span class="cart-item-license">${item.licenseName || 'Standard Lease'}</span>`;
+                }
+
                 itemEl.innerHTML = `
                     <img src="${imgUrl}" class="cart-item-img" alt="Cover" onerror="this.src='https://via.placeholder.com/60'">
                     <div class="cart-item-info">
                         <h4 class="cart-item-title">${item.name || item.title}</h4>
-                        <span class="cart-item-license">${item.licenseName}</span>
+                        ${licenseHtml}
                         <span class="cart-item-price">$${parseFloat(item.price).toFixed(2)}</span>
                     </div>
                     <button class="remove-item-btn" data-index="${index}"><i class="fa fa-trash"></i></button>
@@ -392,7 +422,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     initCart();
 
-    // 4. MODAL LOGIC (With Duplicate Fix)
+    // --- 5. BEAT LICENSE MODAL (Specific to Beats) ---
     const LICENSES = {
         'basic': { name: 'Basic Lease', price: 25.00, features: ['MP3 File (320kbps)', '5,000 Streams Cap', 'Non-Profit Use', '1 Commercial Video', 'Instant Download'], recommended: false },
         'premium': { name: 'Premium Lease', price: 99.99, features: ['WAV + MP3 Files', '500,000 Streams Cap', 'For Profit Use', '10 Commercial Videos', 'Tracked Out Stems (+$50)'], recommended: true },
@@ -404,6 +434,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeOptionsModalBtn = document.getElementById('close-options-modal');
     let currentTrackData = {};
 
+    // Only attach to buttons that are NOT kits (kits usually have onclick="addToCart")
     document.querySelectorAll('.open-options-btn').forEach(button => {
         button.addEventListener('click', () => {
             currentTrackData = {

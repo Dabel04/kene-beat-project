@@ -22,28 +22,30 @@ try {
 
     // 4. Insert New Items
     if (!empty($cart)) {
-        $stmt = $conn->prepare("INSERT INTO cart (user_id, track_id, license_type) VALUES (?, ?, ?)");
+        // Updated Query: Includes product_type
+        $stmt = $conn->prepare("INSERT INTO cart (user_id, track_id, license_type, product_type) VALUES (?, ?, ?, ?)");
         
         foreach ($cart as $item) {
-            $track_id = intval($item['id']);
+            $id_val = isset($item['id']) ? $item['id'] : 0;
             
-            // --- THE FIX: Check ALL possible names for the license ---
-            $license = 'basic'; // Default
+            // Clean ID (remove "kit_" prefix if present in string)
+            $raw_id = str_replace('kit_', '', $id_val);
+            $track_id = intval($raw_id);
             
-            if (!empty($item['licenseKey'])) {
-                $license = $item['licenseKey'];
-            } elseif (!empty($item['license_type'])) {
-                $license = $item['license_type'];
-            } elseif (!empty($item['license'])) {
-                $license = $item['license'];
-            } elseif (!empty($item['key'])) {
-                $license = $item['key'];
+            // Determine Type
+            $type = (isset($item['type']) && $item['type'] === 'kit') ? 'kit' : 'beat';
+
+            // Determine License
+            $license = 'basic';
+            if ($type === 'kit') {
+                $license = 'royalty-free';
+            } else {
+                if (!empty($item['licenseKey'])) $license = $item['licenseKey'];
+                elseif (!empty($item['license_type'])) $license = $item['license_type'];
             }
-            
-            // Force lowercase to match your database enum/strings
             $license = strtolower($license);
 
-            $stmt->bind_param("iis", $user_id, $track_id, $license);
+            $stmt->bind_param("iiss", $user_id, $track_id, $license, $type);
             $stmt->execute();
         }
         $stmt->close();

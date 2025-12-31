@@ -321,7 +321,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login_submit'])) {
                     <button class="ghost-btn" id="login">Sign In</button>
                 </div>
                 <div class="toggle-panel toggle-right">
-                    <h1>Hello, Producer!</h1>
+                    <h1>Hello, Artist!</h1>
                     <p>Register with your personal details to start buying and selling beats.</p>
                     <button class="ghost-btn" id="register">Sign Up</button>
                 </div>

@@ -75,30 +75,55 @@ if (isset($conn) && !$conn->connect_error) {
     $statStmt->close();
 }
 
-// --- 4. FETCH LIBRARY ---
-// Safe Join Query
-$purchased_beats = [];
+// --- 4. FETCH LIBRARY (SMART FETCH) ---
+$purchased_items = [];
 if (isset($conn) && !$conn->connect_error) {
-    $sql = "SELECT 
-                o.date as purchase_date,
-                o.price,
-                o.license_type, 
-                t.title as track_title, 
-                t.cover_image, 
-                t.bpm, 
-                t.track_key 
-            FROM orders o 
-            JOIN tracks t ON (o.track_id = t.id OR o.track_title = t.title)
-            WHERE o.user_id = ? 
-            ORDER BY o.date DESC";
-            
+    // Select all orders first
+    $sql = "SELECT * FROM orders WHERE user_id = ? ORDER BY date DESC";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $current_user_id);
     $stmt->execute();
     $result = $stmt->get_result();
     
-    while($row = $result->fetch_assoc()) {
-        $purchased_beats[] = $row;
+    while($order = $result->fetch_assoc()) {
+        $item = [
+            'id' => $order['id'],
+            'title' => $order['track_title'],
+            'price' => $order['price'],
+            'date' => $order['date'],
+            'type' => isset($order['product_type']) ? $order['product_type'] : 'beat',
+            'license' => $order['license_type'],
+            'cover' => 'https://via.placeholder.com/60', // default
+            'meta' => ''
+        ];
+
+        $p_id = isset($order['product_id']) ? $order['product_id'] : 0;
+
+        // Fetch extra details based on type
+        if ($item['type'] === 'kit') {
+            // It is a kit
+            if ($p_id > 0) {
+                $k_res = $conn->query("SELECT cover_image FROM sound_kits WHERE id = $p_id");
+                if($k_row = $k_res->fetch_assoc()) $item['cover'] = $k_row['cover_image'];
+            }
+            $item['license'] = "Sound Kit License";
+            $item['meta'] = "Royalty Free • 100% Secure";
+        } else {
+            // It is a beat
+            if ($p_id > 0) {
+                $t_res = $conn->query("SELECT cover_image, bpm, track_key FROM tracks WHERE id = $p_id");
+            } else {
+                // Fallback for legacy orders
+                $safe_title = $conn->real_escape_string($order['track_title']);
+                $t_res = $conn->query("SELECT cover_image, bpm, track_key FROM tracks WHERE title = '$safe_title'");
+            }
+            
+            if ($t_row = $t_res->fetch_assoc()) {
+                $item['cover'] = $t_row['cover_image'];
+                $item['meta'] = $t_row['bpm'] . " BPM • Key: " . $t_row['track_key'];
+            }
+        }
+        $purchased_items[] = $item;
     }
     $stmt->close();
 }
@@ -108,13 +133,12 @@ if (isset($conn) && !$conn->connect_error) {
     body { background-color: #000; color: white; font-family: 'Poppins', sans-serif; }
     
     .dashboard-container {
-        margin-top: 100px; /* Space for fixed header */
+        margin-top: 100px;
         padding-top: 40px;
         min-height: 100vh;
         padding-bottom: 80px;
     }
 
-    /* Sidebar Styling */
     .dashboard-sidebar {
         background: #0f0f0f;
         border: 1px solid #222;
@@ -170,7 +194,6 @@ if (isset($conn) && !$conn->connect_error) {
     
     .dash-nav-link i { width: 20px; text-align: center; font-size: 16px; }
 
-    /* Main Content Styling */
     .dash-header {
         margin-bottom: 30px;
         display: flex;
@@ -209,7 +232,6 @@ if (isset($conn) && !$conn->connect_error) {
         transform: rotate(-15deg);
     }
 
-    /* Content Box */
     .content-box {
         background: #0f0f0f;
         border: 1px solid #222;
@@ -243,14 +265,19 @@ if (isset($conn) && !$conn->connect_error) {
     .dl-title { color: white; font-weight: 700; font-size: 16px; display: block; margin-bottom: 4px; }
     .dl-meta { color: #666; font-size: 13px; display: flex; align-items: center; gap: 10px; }
     .license-pill {
-        background: rgba(43, 238, 121, 0.1);
-        color: #2bee79;
+        background: rgba(255,255,255,0.1);
+        color: #ccc;
         padding: 2px 8px;
         border-radius: 4px;
         font-size: 11px;
         text-transform: uppercase;
         font-weight: 700;
         letter-spacing: 0.5px;
+    }
+    .license-pill.kit-pill {
+        background: rgba(43, 238, 121, 0.1);
+        color: #2bee79;
+        border: 1px solid #2bee79;
     }
 
     .btn-download {
@@ -273,12 +300,10 @@ if (isset($conn) && !$conn->connect_error) {
         transform: scale(1.05);
     }
     
-    /* Alert Styles */
     .alert { padding: 15px; border-radius: 8px; margin-bottom: 25px; font-size: 14px; display: flex; align-items: center; gap: 10px; }
     .alert-success { background: rgba(43, 238, 121, 0.1); border: 1px solid #2bee79; color: #2bee79; }
     .alert-danger { background: rgba(255, 71, 87, 0.1); border: 1px solid #ff4757; color: #ff4757; }
 
-    /* Form Styles */
     .settings-group { margin-bottom: 20px; }
     .settings-group label { display: block; color: #888; margin-bottom: 8px; font-size: 14px; }
     input.form-control { 
@@ -337,8 +362,8 @@ if (isset($conn) && !$conn->connect_error) {
             <div id="overview-tab">
                 <div class="stat-cards-grid">
                     <div class="stat-card">
-                        <h3>Purchased Beats</h3>
-                        <div class="value"><?php echo $totalBeats; ?></div>
+                        <h3>Purchased Items</h3>
+                        <div class="value"><?php echo count($purchased_items); ?></div>
                         <i class="fa fa-shopping-bag icon-bg"></i>
                     </div>
                     <div class="stat-card">
@@ -355,30 +380,27 @@ if (isset($conn) && !$conn->connect_error) {
 
                 <div class="content-box">
                     <h4 class="section-title">Recent Activity</h4>
-                    <?php if(empty($purchased_beats)): ?>
+                    <?php if(empty($purchased_items)): ?>
                         <div style="text-align:center; padding: 40px; color:#666;">
                             <i class="fa fa-folder-open" style="font-size: 40px; margin-bottom:15px; opacity:0.3;"></i>
-                            <p>You haven't purchased any beats yet.</p>
+                            <p>You haven't purchased anything yet.</p>
                             <a href="tracks.php" style="color:#2bee79; text-decoration:underline;">Browse Beats</a>
                         </div>
                     <?php else: ?>
-                        <?php foreach(array_slice($purchased_beats, 0, 3) as $beat): ?>
-                            <?php 
-                                $img = !empty($beat['cover_image']) ? $beat['cover_image'] : 'https://via.placeholder.com/60';
-                                $dl_link = "download.php?track=" . urlencode($beat['track_title']);
-                                $licenseName = isset($beat['license_type']) ? ucfirst($beat['license_type']) : 'Standard';
-                            ?>
+                        <?php foreach(array_slice($purchased_items, 0, 3) as $item): ?>
                             <div class="download-item">
-                                <img src="<?php echo htmlspecialchars($img); ?>" alt="Cover" class="dl-img" onerror="this.src='https://via.placeholder.com/60'">
+                                <img src="<?php echo htmlspecialchars($item['cover']); ?>" alt="Cover" class="dl-img" onerror="this.src='https://via.placeholder.com/60'">
                                 <div class="dl-info">
-                                    <span class="dl-title"><?php echo htmlspecialchars($beat['track_title']); ?></span>
+                                    <span class="dl-title"><?php echo htmlspecialchars($item['title']); ?></span>
                                     <div class="dl-meta">
-                                        <span class="license-pill"><?php echo $licenseName; ?></span>
-                                        <span><?php echo date('M d, Y', strtotime($beat['purchase_date'])); ?></span>
+                                        <span class="license-pill <?php echo ($item['type'] === 'kit') ? 'kit-pill' : ''; ?>">
+                                            <?php echo ucfirst($item['license']); ?>
+                                        </span>
+                                        <span><?php echo date('M d, Y', strtotime($item['date'])); ?></span>
                                     </div>
                                 </div>
                                 <div class="dl-actions">
-                                    <a href="<?php echo htmlspecialchars($dl_link); ?>" class="btn-download" download>
+                                    <a href="download.php?order_id=<?php echo $item['id']; ?>" class="btn-download">
                                         <i class="fa fa-download"></i> Download
                                     </a>
                                 </div>
@@ -391,27 +413,25 @@ if (isset($conn) && !$conn->connect_error) {
             <div id="library-tab" style="display:none;">
                 <div class="content-box">
                     <h2 class="section-title">My Collection</h2>
-                    <?php if(empty($purchased_beats)): ?>
+                    <?php if(empty($purchased_items)): ?>
                         <p style="color:#666; text-align:center; padding: 40px;">No beats found. <a href="tracks.php" style="color:#2bee79;">Go shop!</a></p>
                     <?php else: ?>
-                        <?php foreach($purchased_beats as $beat): ?>
-                            <?php 
-                                $img = !empty($beat['cover_image']) ? $beat['cover_image'] : 'https://via.placeholder.com/60';
-                                $dl_link = "download.php?track=" . urlencode($beat['track_title']);
-                                $licenseName = isset($beat['license_type']) ? ucfirst($beat['license_type']) : 'Standard';
-                            ?>
+                        <?php foreach($purchased_items as $item): ?>
                             <div class="download-item">
-                                <img src="<?php echo htmlspecialchars($img); ?>" alt="Cover" class="dl-img">
+                                <img src="<?php echo htmlspecialchars($item['cover']); ?>" alt="Cover" class="dl-img" onerror="this.src='https://via.placeholder.com/60'">
                                 <div class="dl-info">
-                                    <span class="dl-title"><?php echo htmlspecialchars($beat['track_title']); ?></span>
+                                    <span class="dl-title"><?php echo htmlspecialchars($item['title']); ?></span>
                                     <div class="dl-meta">
-                                        <span class="license-pill"><?php echo $licenseName; ?></span>
-                                        <span><?php echo htmlspecialchars($beat['bpm']); ?> BPM</span> • 
-                                        <span>Key: <?php echo htmlspecialchars($beat['track_key']); ?></span>
+                                        <span class="license-pill <?php echo ($item['type'] === 'kit') ? 'kit-pill' : ''; ?>">
+                                            <?php echo ucfirst($item['license']); ?>
+                                        </span>
+                                        <?php if(!empty($item['meta'])): ?>
+                                            <span><?php echo $item['meta']; ?></span>
+                                        <?php endif; ?>
                                     </div>
                                 </div>
                                 <div class="dl-actions">
-                                    <a href="<?php echo htmlspecialchars($dl_link); ?>" class="btn-download">
+                                    <a href="download.php?order_id=<?php echo $item['id']; ?>" class="btn-download">
                                         <i class="fa fa-cloud-download"></i> Download Files
                                     </a>
                                 </div>

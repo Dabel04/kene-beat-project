@@ -243,6 +243,7 @@ $username = isset($_SESSION['username']) ? $_SESSION['username'] : 'Guest';
         <ul class="nav-links" id="nav-links">
             <li><a href="home.php">Home</a></li>
             <li><a href="tracks.php">Tracks</a></li>
+            <li><a href="kits.php">Sound Kits</a></li>
             <li><a href="services.php">Services</a></li>
             <li><a href="about.php">About</a></li>
             <li><a href="contact.php">Contact</a></li>
