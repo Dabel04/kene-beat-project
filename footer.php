@@ -1,5 +1,5 @@
 <style>
-/* --- FOOTER STYLES (Standard) --- */
+/* --- FOOTER STYLES --- */
 .site-footer { background-color: #050505; color: #a0a0a0; font-size: 14px; padding-top: 60px; border-top: 1px solid #222; margin-top: auto; }
 .footer-newsletter { border-bottom: 1px solid #1a1a1a; padding-bottom: 50px; margin-bottom: 50px; }
 .newsletter-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
@@ -25,7 +25,7 @@
 @media (max-width: 991px) { .footer-grid { grid-template-columns: 1fr 1fr; } .footer-newsletter { text-align: center; } .newsletter-content { justify-content: center; } }
 @media (max-width: 576px) { .footer-grid { grid-template-columns: 1fr; text-align: center; } .newsletter-form { width: 100%; flex-direction: column; } .footer-bottom-content { flex-direction: column; text-align: center; } }
 
-/* --- CART SIDEBAR STYLES --- */
+/* --- CART SIDEBAR --- */
 .slide-out-cart { position: fixed; top: 0; right: -450px; width: 420px; height: 100%; background: #080808; border-left: 1px solid #222; box-shadow: -10px 0 30px rgba(0,0,0,0.8); z-index: 2000; transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1); display: flex; flex-direction: column; }
 .slide-out-cart.open { right: 0; }
 .cart-header { padding: 25px; background: #0a0a0a; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; }
@@ -50,134 +50,25 @@
 .empty-cart-message { color: #666; text-align: center; margin-top: 50px; font-style: italic; }
 @media (max-width: 500px) { .slide-out-cart { width: 100%; right: -100%; } }
 
-/* --- RESPONSIVE MODAL STYLES --- */
-.modal-overlay {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.9);
-    backdrop-filter: blur(5px);
-    z-index: 3000;
-    display: none;
-    justify-content: center;
-    align-items: center; 
-    padding: 20px;
-}
-
-.options-modal {
-    background: #0a0a0a;
-    width: 100%;
-    max-width: 1000px;
-    border-radius: 12px;
-    border: 1px solid #333;
-    overflow: hidden;
-    animation: slideUp 0.3s ease-out;
-    display: flex;
-    flex-direction: column;
-    max-height: 90vh;
-}
-
+/* --- MODAL STYLES --- */
+.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.9); backdrop-filter: blur(5px); z-index: 3000; display: none; justify-content: center; align-items: center; padding: 20px; }
+.options-modal { background: #0a0a0a; width: 100%; max-width: 1000px; border-radius: 12px; border: 1px solid #333; overflow: hidden; animation: slideUp 0.3s ease-out; display: flex; flex-direction: column; max-height: 90vh; }
 @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-
-.options-header {
-    background: #111;
-    padding: 20px 30px;
-    border-bottom: 1px solid #222;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-shrink: 0;
-}
-
+.options-header { background: #111; padding: 20px 30px; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
 .options-header h3 { margin: 0; color: white; font-size: 18px; font-weight: 700; }
-
-.options-body {
-    padding: 30px;
-    background: #080808;
-    overflow-y: auto; 
-    display: grid;
-    grid-template-columns: repeat(3, 1fr); 
-    gap: 20px;
-}
-
-@media (max-width: 991px) {
-    .modal-overlay { align-items: flex-end; padding: 0; }
-    .options-modal { max-width: 100%; border-radius: 15px 15px 0 0; max-height: 85vh; border-bottom: none; }
-    .options-body { display: flex; flex-direction: column; padding: 20px; gap: 15px; }
-    .license-option-card { padding: 20px; }
-}
-
-.license-option-card {
-    background: #131313;
-    border: 1px solid #222;
-    border-radius: 10px;
-    padding: 25px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    transition: all 0.2s ease-in-out;
-    position: relative;
-    cursor: pointer;
-    height: 100%;
-}
-
-.license-option-card:hover, .license-option-card:active {
-    border-color: #2bee79;
-    background: #181818;
-    transform: translateY(-2px);
-}
-
+.options-body { padding: 30px; background: #080808; overflow-y: auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+@media (max-width: 991px) { .modal-overlay { align-items: flex-end; padding: 0; } .options-modal { max-width: 100%; border-radius: 15px 15px 0 0; max-height: 85vh; border-bottom: none; } .options-body { display: flex; flex-direction: column; padding: 20px; gap: 15px; } .license-option-card { padding: 20px; } }
+.license-option-card { background: #131313; border: 1px solid #222; border-radius: 10px; padding: 25px; display: flex; flex-direction: column; align-items: center; text-align: center; transition: all 0.2s ease-in-out; position: relative; cursor: pointer; height: 100%; }
+.license-option-card:hover, .license-option-card:active { border-color: #2bee79; background: #181818; transform: translateY(-2px); }
 .license-name { color: #fff; font-size: 18px; font-weight: 800; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 1px; }
 .license-price { color: #2bee79; font-size: 28px; font-weight: 700; margin-bottom: 20px; }
-
-.license-features {
-    list-style: none;
-    padding: 0;
-    margin: 0 0 20px 0;
-    width: 100%;
-    text-align: left;
-    flex-grow: 1;
-}
-
-.license-features li {
-    color: #999;
-    font-size: 13px;
-    padding: 8px 0;
-    border-bottom: 1px solid #222;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
+.license-features { list-style: none; padding: 0; margin: 0 0 20px 0; width: 100%; text-align: left; flex-grow: 1; }
+.license-features li { color: #999; font-size: 13px; padding: 8px 0; border-bottom: 1px solid #222; display: flex; align-items: center; gap: 8px; }
 .license-features li i { color: #2bee79; font-size: 10px; }
 .license-features li:last-child { border-bottom: none; }
-
-.select-label {
-    margin-top: auto;
-    font-size: 12px;
-    font-weight: 700;
-    color: #555;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    transition: 0.3s;
-    border: 1px solid #333;
-    padding: 8px 20px;
-    border-radius: 20px;
-}
-
+.select-label { margin-top: auto; font-size: 12px; font-weight: 700; color: #555; text-transform: uppercase; letter-spacing: 1px; transition: 0.3s; border: 1px solid #333; padding: 8px 20px; border-radius: 20px; }
 .license-option-card:hover .select-label { background: #2bee79; color: black; border-color: #2bee79; }
-
-.recommended-badge {
-    position: absolute;
-    top: -10px;
-    background: #2bee79;
-    color: black;
-    font-size: 10px;
-    font-weight: 800;
-    padding: 4px 12px;
-    border-radius: 20px;
-    text-transform: uppercase;
-    z-index: 10;
-}
+.recommended-badge { position: absolute; top: -10px; background: #2bee79; color: black; font-size: 10px; font-weight: 800; padding: 4px 12px; border-radius: 20px; text-transform: uppercase; z-index: 10; }
 </style>
 
 <footer class="site-footer">
@@ -290,8 +181,7 @@
             <h3 id="modal-track-name">Select License</h3>
             <button class="close-btn" id="close-options-modal">&times;</button>
         </div>
-        <div class="options-body" id="options-container">
-            </div>
+        <div class="options-body" id="options-container"></div>
     </div>
 </div>
 
@@ -314,201 +204,16 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 2. CART LOGIC (Server Sync Edition)
-    let cart = JSON.parse(localStorage.getItem('cartItems')) || [];
-    // PHP Session Check (Injected by PHP)
-    const isLoggedIn = <?php echo isset($_SESSION['user_id']) ? 'true' : 'false'; ?>;
-    
-    const cartCountElement = document.getElementById('cart-count');
-    const cartSidebar = document.getElementById('cart-sidebar');
-    const cartItemsContainer = document.getElementById('cart-items-container');
-    const cartTotalPrice = document.getElementById('cart-total-price');
-    const openCartBtn = document.getElementById('open-cart-btn');
-    const closeCartBtn = document.getElementById('close-cart-btn');
-    const checkoutBtn = document.querySelector('.btn-checkout');
-
-    // --- SYNC FUNCTION ---
-    function saveCartState() {
-        // 1. Save Local
-        localStorage.setItem('cartItems', JSON.stringify(cart));
-        updateCartCount();
-        
-        // 2. Save Server (If Logged In)
-        if (isLoggedIn) {
-            fetch('includes/save_cart.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ cart: cart })
-            }).catch(err => console.error("Sync failed", err));
-        }
-    }
-
-    // --- INITIAL LOAD ---
-    function initCart() {
-        if (isLoggedIn) {
-            // If logged in, Server is the source of truth
-            fetch('includes/get_cart.php')
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success && data.items.length > 0) {
-                        // Merge or Replace? Let's Replace for consistency
-                        cart = data.items.map(item => ({
-                            ...item,
-                            licenseKey: item.license_type // Ensure key exists
-                        }));
-                        saveCartState(); // Update local storage to match server
-                        renderCart();
-                    } else {
-                        // Server empty? Keep local
-                        renderCart();
-                    }
-                })
-                .catch(err => console.log('Cart fetch skipped/failed'));
-        } else {
-            renderCart();
-        }
-        updateCartCount();
-    }
-
-    function updateCartCount() { if(cartCountElement) cartCountElement.textContent = cart.length; }
-    function calculateCartTotal() { return cart.reduce((sum, item) => sum + parseFloat(item.price), 0).toFixed(2); }
-
-    function renderCart() {
-        if (!cartItemsContainer) return;
-        cartItemsContainer.innerHTML = '';
-        if (cart.length === 0) {
-            cartItemsContainer.innerHTML = '<p class="empty-cart-message">Your cart is empty.</p>';
-        } else {
-            cart.forEach((item, index) => {
-                const itemEl = document.createElement('div');
-                itemEl.classList.add('cart-item');
-                // Handle different image property names (server vs local)
-                const imgUrl = item.img || item.cover || 'https://via.placeholder.com/60?text=Beat';
-                
-                itemEl.innerHTML = `
-                    <img src="${imgUrl}" class="cart-item-img" alt="Cover" onerror="this.src='https://via.placeholder.com/60'">
-                    <div class="cart-item-info">
-                        <h4 class="cart-item-title">${item.name || item.title}</h4>
-                        <span class="cart-item-license">${item.licenseName}</span>
-                        <span class="cart-item-price">$${parseFloat(item.price).toFixed(2)}</span>
-                    </div>
-                    <button class="remove-item-btn" data-index="${index}"><i class="fa fa-trash"></i></button>
-                `;
-                cartItemsContainer.appendChild(itemEl);
-            });
-            
-            // Attach Remove Listeners
-            cartItemsContainer.querySelectorAll('.remove-item-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const idx = parseInt(e.currentTarget.dataset.index);
-                    cart.splice(idx, 1);
-                    saveCartState(); // <--- TRIGGERS SERVER SAVE
-                    renderCart();
-                });
-            });
-        }
-        if (cartTotalPrice) cartTotalPrice.textContent = `$${calculateCartTotal()}`;
-    }
-
-    if (openCartBtn) openCartBtn.addEventListener('click', () => { cartSidebar.classList.add('open'); renderCart(); });
-    if (closeCartBtn) closeCartBtn.addEventListener('click', () => cartSidebar.classList.remove('open'));
-    if (checkoutBtn) checkoutBtn.addEventListener('click', () => { cart.length > 0 ? window.location.href = 'checkout.php' : alert("Cart is empty!"); });
-    
-    // Call Init
-    initCart();
-
-    // 3. PRICING MODAL LOGIC (Responsive Cards)
-    const LICENSES = {
-        'basic': { 
-            name: 'Basic Lease', 
-            price: 25.00, 
-            features: ['MP3 File (320kbps)', '5,000 Streams Cap', 'Non-Profit Use', '1 Commercial Video', 'Instant Download'],
-            recommended: false
-        },
-        'premium': { 
-            name: 'Premium Lease', 
-            price: 99.99, 
-            features: ['WAV + MP3 Files', '500,000 Streams Cap', 'For Profit Use', '10 Commercial Videos', 'Tracked Out Stems (+$50)'],
-            recommended: true
-        },
-        'exclusive': { 
-            name: 'Exclusive Rights', 
-            price: 500.00, 
-            features: ['MP3 + WAV + Stems', 'Unlimited Streams', 'Unlimited Profits', 'Radio Broadcasting', 'Ownership Transferred'],
-            recommended: false
-        }
-    };
-    const optionsModalOverlay = document.getElementById('options-modal-overlay');
-    const optionsContainer = document.getElementById('options-container');
-    const modalTrackName = document.getElementById('modal-track-name');
-    const closeOptionsModalBtn = document.getElementById('close-options-modal');
-    let currentTrackData = {};
-
-    document.querySelectorAll('.open-options-btn').forEach(button => {
-        button.addEventListener('click', () => {
-            currentTrackData = {
-                id: button.dataset.id, name: button.dataset.name, producer: button.dataset.producer,
-                img: button.closest('.card, .track-card')?.querySelector('img')?.src || ''
-            };
-            if(modalTrackName) modalTrackName.innerHTML = `Select License: <span style="color:#2bee79">${currentTrackData.name}</span>`;
-            renderOptions();
-            if(optionsModalOverlay) optionsModalOverlay.style.display = 'flex';
-        });
-    });
-
-    if(closeOptionsModalBtn) closeOptionsModalBtn.addEventListener('click', () => optionsModalOverlay.style.display = 'none');
-
-    function renderOptions() {
-        if (!optionsContainer) return;
-        optionsContainer.innerHTML = '';
-        
-        const keys = ['basic', 'premium', 'exclusive'];
-        
-        keys.forEach(key => {
-            const license = LICENSES[key];
-            const div = document.createElement('div');
-            div.className = 'license-option-card';
-            div.dataset.key = key; 
-
-            let featuresHTML = '';
-            license.features.forEach(feat => { featuresHTML += `<li><i class="fa fa-check"></i> ${feat}</li>`; });
-            const badge = license.recommended ? '<div class="recommended-badge">Best Value</div>' : '';
-
-            div.innerHTML = `
-                ${badge}
-                <div class="license-name">${license.name}</div>
-                <div class="license-price">$${license.price.toFixed(0)}</div>
-                <ul class="license-features">${featuresHTML}</ul>
-                <div class="select-label">Select Plan</div>
-            `;
-            optionsContainer.appendChild(div);
-        });
-        
-        optionsContainer.querySelectorAll('.license-option-card').forEach(card => {
-            card.addEventListener('click', (e) => {
-                const key = card.dataset.key;
-                cart.push({
-                    id: currentTrackData.id, name: currentTrackData.name, producer: currentTrackData.producer,
-                    price: LICENSES[key].price, licenseKey: key, licenseName: LICENSES[key].name, img: currentTrackData.img
-                });
-                // USE SAVE STATE HERE
-                saveCartState(); 
-                
-                optionsModalOverlay.style.display = 'none';
-                cartSidebar.classList.add('open'); renderCart();
-            });
-        });
-    }
-
-    // 4. AUDIO PLAYER LOGIC
+    // 2. AUDIO PLAYER LOGIC
     const audioPlayer = document.querySelector('.audio-player');
-    if (!audioPlayer) return;
     const playPauseBtn = audioPlayer.querySelector('.play-pause-btn');
     const playPauseIcon = playPauseBtn ? playPauseBtn.querySelector('i') : null;
     const playerTitle = audioPlayer.querySelector('.player-track-title');
     const playerImage = audioPlayer.querySelector('.player-track-image img');
     const progress = audioPlayer.querySelector('.progress');
     const progressBar = audioPlayer.querySelector('.progress-bar');
+    
+    let genericAudio = new Audio();
     let currentAudio = null;
     let currentCard = null;
 
@@ -520,30 +225,49 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    window.loadTrack = function(audioElement, cardElement) {
-        if(currentAudio && currentAudio !== audioElement) {
-            currentAudio.pause(); resetTrackState(currentCard);
+    window.loadTrack = function(input, context) {
+        if(currentAudio && currentAudio !== input && currentAudio !== genericAudio) {
+            currentAudio.pause();
+            resetTrackState(currentCard);
         }
-        currentAudio = audioElement; currentCard = cardElement;
+
+        if (typeof input === 'object' && !(input instanceof Element)) {
+            genericAudio.src = input.audio;
+            currentAudio = genericAudio;
+            currentCard = null; 
+            audioPlayer.style.display = 'flex';
+            if(playerTitle) playerTitle.textContent = input.title;
+            if(playerImage) playerImage.src = input.cover;
+            currentAudio.play().catch(e => console.error("Playback error", e));
+            if(playPauseIcon) playPauseIcon.className = 'fa fa-pause';
+            attachPlayerListeners(currentAudio, null);
+            return;
+        }
+
+        currentAudio = input;
+        currentCard = context;
         audioPlayer.style.display = 'flex';
-        const title = cardElement.querySelector('.card-body h5 a, .track-title, .track-title a')?.textContent || 'Unknown';
-        const img = cardElement.querySelector('img')?.src || '';
+        const title = context.querySelector('.card-body h5 a, .track-title, .track-title a')?.textContent || 'Unknown';
+        const img = context.querySelector('img')?.src || '';
         if(playerTitle) playerTitle.textContent = title;
         if(playerImage) playerImage.src = img;
         currentAudio.play().catch(e => console.error(e));
         if(playPauseIcon) playPauseIcon.className = 'fa fa-pause';
-        cardElement.classList.add('playing');
-        const icon = cardElement.querySelector('.btn-play i') || cardElement.querySelector('.play-button i');
+        context.classList.add('playing');
+        const icon = context.querySelector('.btn-play i') || context.querySelector('.play-button i');
         if(icon) icon.className = 'fa fa-pause';
-        
-        currentAudio.addEventListener('timeupdate', () => {
-            const percent = (currentAudio.currentTime / currentAudio.duration) * 100;
+        attachPlayerListeners(currentAudio, context);
+    }
+
+    function attachPlayerListeners(audio, card) {
+        audio.ontimeupdate = () => {
+            const percent = (audio.currentTime / audio.duration) * 100;
             if(progress) progress.style.width = `${percent}%`;
-        });
-        currentAudio.addEventListener('ended', () => {
+        };
+        audio.onended = () => {
             if(playPauseIcon) playPauseIcon.className = 'fa fa-play';
-            resetTrackState(currentCard);
-        });
+            if(card) resetTrackState(card);
+        };
     }
 
     document.querySelectorAll('.card, .track-card').forEach(card => {
@@ -574,6 +298,174 @@ document.addEventListener('DOMContentLoaded', () => {
             const width = progressBar.clientWidth;
             const clickX = e.offsetX;
             currentAudio.currentTime = (clickX / width) * currentAudio.duration;
+        });
+    }
+
+    // 3. CART LOGIC (Fixed Empty State)
+    let cart = JSON.parse(localStorage.getItem('cartItems')) || [];
+    const isLoggedIn = <?php echo isset($_SESSION['user_id']) ? 'true' : 'false'; ?>;
+    
+    const cartCountElement = document.getElementById('cart-count');
+    const cartSidebar = document.getElementById('cart-sidebar');
+    const cartItemsContainer = document.getElementById('cart-items-container');
+    const cartTotalPrice = document.getElementById('cart-total-price');
+    const openCartBtn = document.getElementById('open-cart-btn');
+    const closeCartBtn = document.getElementById('close-cart-btn');
+    const checkoutBtn = document.querySelector('.btn-checkout');
+
+    function saveCartState() {
+        localStorage.setItem('cartItems', JSON.stringify(cart));
+        updateCartCount();
+        if (isLoggedIn) {
+            fetch('includes/save_cart.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ cart: cart })
+            }).catch(err => console.error("Sync failed", err));
+        }
+    }
+
+    function initCart() {
+        if (isLoggedIn) {
+            fetch('includes/get_cart.php')
+                .then(res => res.json())
+                .then(data => {
+                    // --- CRITICAL FIX: TRUST SERVER ALWAYS ---
+                    if (data.success) {
+                        const serverItems = data.items || [];
+                        cart = serverItems.map(item => ({
+                            ...item,
+                            licenseKey: item.licenseKey || item.license_type || 'basic'
+                        }));
+                        saveCartState(); 
+                        renderCart();
+                    }
+                })
+                .catch(err => console.log('Cart fetch skipped/failed'));
+        } else {
+            renderCart();
+        }
+        updateCartCount();
+    }
+
+    function updateCartCount() { if(cartCountElement) cartCountElement.textContent = cart.length; }
+    function calculateCartTotal() { return cart.reduce((sum, item) => sum + parseFloat(item.price), 0).toFixed(2); }
+
+    function renderCart() {
+        if (!cartItemsContainer) return;
+        cartItemsContainer.innerHTML = '';
+        if (cart.length === 0) {
+            cartItemsContainer.innerHTML = '<p class="empty-cart-message">Your cart is empty.</p>';
+        } else {
+            cart.forEach((item, index) => {
+                const itemEl = document.createElement('div');
+                itemEl.classList.add('cart-item');
+                const imgUrl = item.img || item.cover || 'https://via.placeholder.com/60?text=Beat';
+                
+                itemEl.innerHTML = `
+                    <img src="${imgUrl}" class="cart-item-img" alt="Cover" onerror="this.src='https://via.placeholder.com/60'">
+                    <div class="cart-item-info">
+                        <h4 class="cart-item-title">${item.name || item.title}</h4>
+                        <span class="cart-item-license">${item.licenseName}</span>
+                        <span class="cart-item-price">$${parseFloat(item.price).toFixed(2)}</span>
+                    </div>
+                    <button class="remove-item-btn" data-index="${index}"><i class="fa fa-trash"></i></button>
+                `;
+                cartItemsContainer.appendChild(itemEl);
+            });
+            
+            cartItemsContainer.querySelectorAll('.remove-item-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const idx = parseInt(e.currentTarget.dataset.index);
+                    cart.splice(idx, 1);
+                    saveCartState(); 
+                    renderCart();
+                });
+            });
+        }
+        if (cartTotalPrice) cartTotalPrice.textContent = `$${calculateCartTotal()}`;
+    }
+
+    if (openCartBtn) openCartBtn.addEventListener('click', () => { cartSidebar.classList.add('open'); renderCart(); });
+    if (closeCartBtn) closeCartBtn.addEventListener('click', () => cartSidebar.classList.remove('open'));
+    if (checkoutBtn) checkoutBtn.addEventListener('click', () => { cart.length > 0 ? window.location.href = 'checkout.php' : alert("Cart is empty!"); });
+    
+    initCart();
+
+    // 4. MODAL LOGIC (With Duplicate Fix)
+    const LICENSES = {
+        'basic': { name: 'Basic Lease', price: 25.00, features: ['MP3 File (320kbps)', '5,000 Streams Cap', 'Non-Profit Use', '1 Commercial Video', 'Instant Download'], recommended: false },
+        'premium': { name: 'Premium Lease', price: 99.99, features: ['WAV + MP3 Files', '500,000 Streams Cap', 'For Profit Use', '10 Commercial Videos', 'Tracked Out Stems (+$50)'], recommended: true },
+        'exclusive': { name: 'Exclusive Rights', price: 500.00, features: ['MP3 + WAV + Stems', 'Unlimited Streams', 'Unlimited Profits', 'Radio Broadcasting', 'Ownership Transferred'], recommended: false }
+    };
+    const optionsModalOverlay = document.getElementById('options-modal-overlay');
+    const optionsContainer = document.getElementById('options-container');
+    const modalTrackName = document.getElementById('modal-track-name');
+    const closeOptionsModalBtn = document.getElementById('close-options-modal');
+    let currentTrackData = {};
+
+    document.querySelectorAll('.open-options-btn').forEach(button => {
+        button.addEventListener('click', () => {
+            currentTrackData = {
+                id: button.dataset.id, name: button.dataset.name, producer: button.dataset.producer,
+                img: button.closest('.card, .track-card')?.querySelector('img')?.src || ''
+            };
+            if(modalTrackName) modalTrackName.innerHTML = `Select License: <span style="color:#2bee79">${currentTrackData.name}</span>`;
+            renderOptions();
+            if(optionsModalOverlay) optionsModalOverlay.style.display = 'flex';
+        });
+    });
+
+    if(closeOptionsModalBtn) closeOptionsModalBtn.addEventListener('click', () => optionsModalOverlay.style.display = 'none');
+
+    function renderOptions() {
+        if (!optionsContainer) return;
+        optionsContainer.innerHTML = '';
+        const keys = ['basic', 'premium', 'exclusive'];
+        keys.forEach(key => {
+            const license = LICENSES[key];
+            const div = document.createElement('div');
+            div.className = 'license-option-card';
+            div.dataset.key = key; 
+            let featuresHTML = '';
+            license.features.forEach(feat => { featuresHTML += `<li><i class="fa fa-check"></i> ${feat}</li>`; });
+            const badge = license.recommended ? '<div class="recommended-badge">Best Value</div>' : '';
+            div.innerHTML = `
+                ${badge}
+                <div class="license-name">${license.name}</div>
+                <div class="license-price">$${license.price.toFixed(0)}</div>
+                <ul class="license-features">${featuresHTML}</ul>
+                <div class="select-label">Select Plan</div>
+            `;
+            optionsContainer.appendChild(div);
+        });
+        
+        optionsContainer.querySelectorAll('.license-option-card').forEach(card => {
+            card.addEventListener('click', (e) => {
+                const key = card.dataset.key;
+                
+                const existingIndex = cart.findIndex(item => item.id === currentTrackData.id);
+                if (existingIndex !== -1) {
+                    cart[existingIndex].licenseKey = key;
+                    cart[existingIndex].price = LICENSES[key].price;
+                    cart[existingIndex].licenseName = LICENSES[key].name;
+                } else {
+                    cart.push({
+                        id: currentTrackData.id, 
+                        name: currentTrackData.name, 
+                        producer: currentTrackData.producer,
+                        price: LICENSES[key].price, 
+                        licenseKey: key, 
+                        licenseName: LICENSES[key].name, 
+                        img: currentTrackData.img
+                    });
+                }
+                
+                saveCartState(); 
+                optionsModalOverlay.style.display = 'none';
+                cartSidebar.classList.add('open'); 
+                renderCart();
+            });
         });
     }
 });

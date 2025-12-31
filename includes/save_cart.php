@@ -13,24 +13,48 @@ $user_id = intval($_SESSION['user_id']);
 $input = json_decode(file_get_contents('php://input'), true);
 $cart = isset($input['cart']) ? $input['cart'] : [];
 
-// 2. WIPE THE OLD CART (Crucial!)
-// We delete everything for this user first, so we don't get duplicates.
-$conn->query("DELETE FROM cart WHERE user_id = $user_id");
+// 2. Transaction Start
+$conn->begin_transaction();
 
-// 3. INSERT NEW ITEMS
-if (!empty($cart)) {
-    $stmt = $conn->prepare("INSERT INTO cart (user_id, track_id, license_type) VALUES (?, ?, ?)");
-    
-    foreach ($cart as $item) {
-        $track_id = intval($item['id']);
-        // Trust the key from frontend (basic, premium, exclusive)
-        $license_type = isset($item['licenseKey']) ? $item['licenseKey'] : 'basic';
+try {
+    // 3. Wipe Old Cart
+    $conn->query("DELETE FROM cart WHERE user_id = $user_id");
+
+    // 4. Insert New Items
+    if (!empty($cart)) {
+        $stmt = $conn->prepare("INSERT INTO cart (user_id, track_id, license_type) VALUES (?, ?, ?)");
         
-        $stmt->bind_param("iis", $user_id, $track_id, $license_type);
-        $stmt->execute();
-    }
-    $stmt->close();
-}
+        foreach ($cart as $item) {
+            $track_id = intval($item['id']);
+            
+            // --- THE FIX: Check ALL possible names for the license ---
+            $license = 'basic'; // Default
+            
+            if (!empty($item['licenseKey'])) {
+                $license = $item['licenseKey'];
+            } elseif (!empty($item['license_type'])) {
+                $license = $item['license_type'];
+            } elseif (!empty($item['license'])) {
+                $license = $item['license'];
+            } elseif (!empty($item['key'])) {
+                $license = $item['key'];
+            }
+            
+            // Force lowercase to match your database enum/strings
+            $license = strtolower($license);
 
-echo json_encode(['success' => true]);
+            $stmt->bind_param("iis", $user_id, $track_id, $license);
+            $stmt->execute();
+        }
+        $stmt->close();
+    }
+    
+    // 5. Commit
+    $conn->commit();
+    echo json_encode(['success' => true]);
+
+} catch (Exception $e) {
+    $conn->rollback();
+    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+}
 ?>

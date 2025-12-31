@@ -1,40 +1,44 @@
 <?php
-// Turn off error reporting to prevent HTML warnings from breaking JSON
-error_reporting(0);
+// includes/get_tracks.php
 header('Content-Type: application/json');
+include '../db_connect.php';
 
-// Use __DIR__ to safely find the root folder regardless of where this is called
-$rootPath = dirname(__DIR__); 
+$response = [];
 
-if (file_exists($rootPath . '/db_connect.php')) {
-    include $rootPath . '/db_connect.php';
-} else {
-    echo json_encode(["error" => "Critical: db_connect.php not found at $rootPath/db_connect.php"]);
-    exit;
+// Pagination logic
+$limit = 10; // Tracks per page
+$page = isset($_GET['page']) ? intval($_GET['page']) : 1;
+if($page < 1) $page = 1;
+$offset = ($page - 1) * $limit;
+
+// 1. Get Total Count
+$countSql = "SELECT COUNT(*) as total FROM tracks";
+$countResult = $conn->query($countSql);
+$totalRows = $countResult->fetch_assoc()['total'];
+$totalPages = ceil($totalRows / $limit);
+
+// 2. Get Tracks for Current Page
+$sql = "SELECT * FROM tracks ORDER BY id DESC LIMIT ?, ?";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("ii", $offset, $limit);
+$stmt->execute();
+$result = $stmt->get_result();
+
+$tracks = [];
+while($row = $result->fetch_assoc()) {
+    $tracks[] = $row;
 }
 
-// Check Database Connection
-if ($conn->connect_error) {
-    echo json_encode(["error" => "Database Connection Failed: " . $conn->connect_error]);
-    exit;
-}
-
-// Fetch Tracks
-$sql = "SELECT * FROM tracks ORDER BY id DESC";
-$result = $conn->query($sql);
-
-$tracks = array();
-
-if ($result) {
-    if ($result->num_rows > 0) {
-        while($row = $result->fetch_assoc()) {
-            $tracks[] = $row;
-        }
-    }
-    echo json_encode($tracks);
-} else {
-    echo json_encode(["error" => "SQL Error: " . $conn->error]);
-}
+// 3. Return JSON with Metadata
+echo json_encode([
+    'success' => true,
+    'tracks' => $tracks,
+    'pagination' => [
+        'current_page' => $page,
+        'total_pages' => $totalPages,
+        'total_tracks' => $totalRows
+    ]
+]);
 
 $conn->close();
 ?>

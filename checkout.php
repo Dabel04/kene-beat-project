@@ -1,10 +1,8 @@
 <?php
-// 1. Include Header to start Session and DB
 include 'header.php';
 
-// 2. FETCH USER DETAILS
-// If not logged in, redirect to login page
-if (!isset($_SESSION['username'])) {
+// Force Login
+if (!isset($_SESSION['user_id'])) {
     echo "<script>window.location.href='getstarted.php';</script>";
     exit;
 }
@@ -17,29 +15,92 @@ $currentEmail = isset($_SESSION['email']) ? $_SESSION['email'] : 'user@example.c
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Checkout - KentonTheProducer</title>
   <link rel="stylesheet" href="css/bootstrap.min.css">
   <link rel="stylesheet" href="css/homepage.css">
   <link rel="stylesheet" href="css/checkout.css">
-  <link rel="stylesheet" href="css/font-awesome.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-  
   <style>
-      /* Ensure Pre-filled inputs look read-only */
-      input[readonly] {
-          background-color: #1a1a1a !important;
-          color: #888 !important;
-          cursor: not-allowed;
-          border-color: #333 !important;
+      body { background-color: #000; color: white; }
+      
+      /* --- PROFESSIONAL CARD INPUT STYLING --- */
+      .card-input-container {
+          border: 1px solid #333;
+          border-radius: 6px;
+          background: #0f0f0f;
+          overflow: hidden;
+          transition: border-color 0.3s;
       }
+      .card-input-container:focus-within {
+          border-color: #2bee79;
+          box-shadow: 0 0 0 1px #2bee79;
+      }
+      
+      .card-number-row {
+          display: flex;
+          align-items: center;
+          padding: 12px 15px;
+          border-bottom: 1px solid #333;
+          background: #0f0f0f;
+      }
+      .card-number-row i { color: #888; margin-right: 10px; font-size: 18px; }
+      .card-number-row input {
+          border: none;
+          background: transparent;
+          width: 100%;
+          color: white;
+          outline: none;
+          font-size: 16px;
+          letter-spacing: 1px;
+      }
+      
+      .card-details-row {
+          display: flex;
+      }
+      .card-details-row input {
+          width: 50%;
+          border: none;
+          background: transparent;
+          color: white;
+          padding: 12px 15px;
+          outline: none;
+          font-size: 16px;
+          text-align: center;
+      }
+      .card-details-row input:first-child {
+          border-right: 1px solid #333;
+      }
+      
+      /* Readonly Inputs */
+      input[readonly] { 
+          background-color: #1a1a1a !important; 
+          color: #888 !important; 
+          border: 1px solid #333 !important; 
+          cursor: not-allowed; 
+      }
+
+      /* Play/Delete Button Styles */
+      .cart-item-image { position: relative; cursor: pointer; }
+      .image-overlay {
+          position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+          background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center;
+          opacity: 0; transition: 0.3s; border-radius: 6px;
+      }
+      .cart-item-image:hover .image-overlay { opacity: 1; }
+      .image-overlay i { color: #2bee79; font-size: 20px; }
+      
+      .remove-item {
+          background: none; border: none; color: #666; cursor: pointer; transition: 0.3s; font-size: 14px;
+      }
+      .remove-item:hover { color: #ff4757; }
   </style>
 </head>
 <body>
-  <main class="checkout-container" style="padding-top: 100px;">
+  
+  <main class="checkout-container" style="padding-top: 120px; padding-bottom: 50px;">
     <div class="checkout-header">
       <h1>Secure Checkout</h1>
-      <p class="subtitle">Review your tracks and complete your purchase securely.</p>
+      <p class="subtitle">Review your tracks and complete your purchase.</p>
     </div>
 
     <div class="checkout-grid">
@@ -51,49 +112,35 @@ $currentEmail = isset($_SESSION['email']) ? $_SESSION['email'] : 'user@example.c
           </div>
           
           <div class="cart-items-list" id="cart-items-list">
-            </div>
+             <p style="padding:20px; color:#666;">Loading items...</p>
+          </div>
         </div>
 
         <div class="promo-card">
           <div class="promo-content">
-            <div class="promo-icon">
-              <i class="fas fa-gift"></i>
-            </div>
+            <div class="promo-icon"><i class="fas fa-gift"></i></div>
             <div class="promo-text">
               <h4>Get 50% Off Your Next Beat?</h4>
               <p>Add 2 more tracks to your cart to unlock the bulk discount.</p>
             </div>
           </div>
-          <button class="promo-btn">Browse Beats</button>
+          <button class="promo-btn" onclick="window.location.href='tracks.php'">Browse Beats</button>
         </div>
       </div>
 
       <div class="checkout-right">
         <div class="sticky-checkout">
+            
           <div class="order-summary">
             <h3>Order Summary</h3>
             <div class="summary-details">
-              <div class="summary-row">
-                <span>Subtotal</span>
-                <span id="cart-subtotal">$0.00</span>
-              </div>
-              <div class="summary-row">
-                <span>Discount</span>
-                <span class="discount" id="cart-discount">-$0.00</span>
-              </div>
-              <div class="summary-row">
-                <span>Taxes</span>
-                <span id="cart-taxes">$0.00</span>
-              </div>
+              <div class="summary-row"><span>Subtotal</span><span id="cart-subtotal">$0.00</span></div>
+              <div class="summary-row"><span>Discount</span><span class="discount" id="cart-discount">-$0.00</span></div>
+              <div class="summary-row"><span>Taxes</span><span id="cart-taxes">$0.00</span></div>
             </div>
             <div class="summary-total">
               <span>Total</span>
               <span id="cart-total" class="total-amount">$0.00</span>
-            </div>
-            
-            <div class="promo-input-container">
-              <input type="text" id="promo-code" placeholder="Promo code">
-              <button id="apply-promo">APPLY</button>
             </div>
           </div>
 
@@ -106,12 +153,12 @@ $currentEmail = isset($_SESSION['email']) ? $_SESSION['email'] : 'user@example.c
             <form id="payment-form">
               <div class="form-group">
                 <label>Account Name</label>
-                <input type="text" id="username" value="<?php echo htmlspecialchars($currentUser); ?>" readonly required>
+                <input type="text" id="username" value="<?php echo htmlspecialchars($currentUser); ?>" readonly>
               </div>
 
               <div class="form-group">
                 <label>Email Address</label>
-                <input type="email" id="email" value="<?php echo htmlspecialchars($currentEmail); ?>" readonly required>
+                <input type="email" id="email" value="<?php echo htmlspecialchars($currentEmail); ?>" readonly>
                 <p class="helper-text">Your files will be sent to this email instantly.</p>
               </div>
 
@@ -120,7 +167,7 @@ $currentEmail = isset($_SESSION['email']) ? $_SESSION['email'] : 'user@example.c
                 <div class="card-input-container">
                   <div class="card-number-row">
                     <i class="far fa-credit-card"></i>
-                    <input type="text" id="card-number" placeholder="Card number" maxlength="19" required>
+                    <input type="text" id="card-number" placeholder="0000 0000 0000 0000" maxlength="19" required>
                   </div>
                   <div class="card-details-row">
                     <input type="text" id="card-expiry" placeholder="MM / YY" maxlength="7" required>
@@ -129,20 +176,14 @@ $currentEmail = isset($_SESSION['email']) ? $_SESSION['email'] : 'user@example.c
                 </div>
               </div>
 
-              <button type="submit" class="pay-btn" id="pay-button">
+              <button type="submit" class="pay-btn" id="pay-button" style="width:100%; padding:15px; background:#2bee79; color:black; font-weight:800; border:none; border-radius:5px; cursor:pointer;">
                 <span>Pay <span id="pay-amount">$0.00</span></span>
                 <i class="fas fa-arrow-right"></i>
               </button>
 
               <div class="security-badges">
-                <div class="badge-item">
-                  <i class="fas fa-lock"></i>
-                  <span>Secure 256-bit SSL</span>
-                </div>
-                <div class="badge-item">
-                  <i class="fas fa-bolt"></i>
-                  <span>Instant Delivery</span>
-                </div>
+                <div class="badge-item"><i class="fas fa-lock"></i><span>Secure 256-bit SSL</span></div>
+                <div class="badge-item"><i class="fas fa-bolt"></i><span>Instant Delivery</span></div>
               </div>
             </form>
           </div>
@@ -156,237 +197,203 @@ $currentEmail = isset($_SESSION['email']) ? $_SESSION['email'] : 'user@example.c
   <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.min.js"></script>
-  
+
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      // Cart data from localStorage
-      let cart = JSON.parse(localStorage.getItem('cartItems')) || [];
-      const cartCountElement = document.getElementById('cart-count');
-      const cartItemsList = document.getElementById('cart-items-list');
+      // VARIABLES
+      const cartList = document.getElementById('cart-items-list');
       const cartItemCount = document.getElementById('cart-item-count');
       const cartSubtotal = document.getElementById('cart-subtotal');
       const cartTotal = document.getElementById('cart-total');
       const payAmount = document.getElementById('pay-amount');
+      const payButton = document.getElementById('pay-button');
       const clearCartBtn = document.getElementById('clear-cart');
-      
-      const LICENSES = {
-        'exclusive': { name: 'Exclusive Rights', price: 500.00 },
-        'premium': { name: 'Non-Exclusive (Premium)', price: 99.99 },
-        'basic': { name: 'Non-Exclusive (Basic)', price: 25.00 }
-      };
+      let cartData = [];
 
-      // Initialize cart display
-      function updateCartCount() {
-        if(cartCountElement) {
-          cartCountElement.textContent = cart.length;
-        }
-        if(cartItemCount) {
-          cartItemCount.textContent = cart.length;
-        }
-      }
-
-      function calculateCartTotals() {
-        const subtotal = cart.reduce((sum, item) => sum + item.price, 0);
-        const discount = 0; 
-        const taxes = 0; 
-        const total = subtotal - discount + taxes;
-        
-        return {
-          subtotal: subtotal.toFixed(2),
-          discount: discount.toFixed(2),
-          taxes: taxes.toFixed(2),
-          total: total.toFixed(2)
-        };
-      }
-
-      function renderCartItems() {
-        if (!cartItemsList) return;
-        
-        cartItemsList.innerHTML = '';
-        
-        if (cart.length === 0) {
-          cartItemsList.innerHTML = `
-            <div class="empty-cart">
-              <i class="fas fa-shopping-cart"></i>
-              <p>Your cart is empty</p>
-              <a href="tracks.php" class="btn btn-signup">Browse Beats</a>
-            </div>
-          `;
-        } else {
-          cart.forEach((item, index) => {
-            const itemEl = document.createElement('div');
-            itemEl.className = 'cart-item';
-            itemEl.innerHTML = `
-              <div class="cart-item-content">
-                <div class="cart-item-image">
-                  <img src="${item.img || 'https://via.placeholder.com/70'}" alt="${item.name}">
-                  <div class="image-overlay">
-                    <i class="fas fa-play"></i>
-                  </div>
-                </div>
-                <div class="cart-item-info">
-                  <h4>${item.name}</h4>
-                  <div class="item-meta">
-                    <span class="bpm-tag">${item.producer || 'Kenton'}</span>
-                    <span class="key">${item.licenseName || 'License'}</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div class="cart-item-actions">
-                <div class="item-price">$${item.price.toFixed(2)}</div>
-                <button class="remove-item" data-index="${index}">
-                  <i class="fas fa-trash"></i>
-                </button>
-              </div>
-            `;
-            cartItemsList.appendChild(itemEl);
-          });
-        }
-        
-        const totals = calculateCartTotals();
-        if (cartSubtotal) cartSubtotal.textContent = `$${totals.subtotal}`;
-        if (cartTotal) cartTotal.textContent = `$${totals.total}`;
-        if (payAmount) payAmount.textContent = `$${totals.total}`;
-      }
-
-      // Clear Cart Listener
-      if (clearCartBtn) {
-        clearCartBtn.addEventListener('click', () => {
-          if (confirm('Are you sure you want to clear your cart?')) {
-            cart = [];
-            localStorage.setItem('cartItems', JSON.stringify(cart));
-            updateCartCount();
-            renderCartItems();
+      // FETCH CART
+      fetch('includes/get_cart.php')
+      .then(res => res.json())
+      .then(data => {
+          if (data.success && data.items.length > 0) {
+              cartData = data.items;
+              renderCheckout();
+          } else {
+              handleEmptyCart();
           }
-        });
-      }
-
-      // Remove item listener
-      document.addEventListener('click', (e) => {
-        if (e.target.closest('.remove-item')) {
-          const index = parseInt(e.target.closest('.remove-item').dataset.index);
-          cart.splice(index, 1);
-          localStorage.setItem('cartItems', JSON.stringify(cart));
-          updateCartCount();
-          renderCartItems();
-        }
+      })
+      .catch(err => {
+          console.error("Cart Error:", err);
+          cartList.innerHTML = '<p style="padding:20px; color:red;">Error loading cart. Please refresh.</p>';
       });
 
-      // Promo code logic (Keep original)
-      const applyPromoBtn = document.getElementById('apply-promo');
-      if (applyPromoBtn) {
-        applyPromoBtn.addEventListener('click', () => {
-          const promoCode = document.getElementById('promo-code').value;
-          if (promoCode === 'SAVE20') {
-            alert('Promo code applied! 20% discount will be calculated on the next page.');
-          } else if (promoCode) {
-            alert('Invalid promo code');
+      function handleEmptyCart() {
+          cartList.innerHTML = `
+            <div class="empty-cart" style="text-align:center; padding:30px;">
+              <i class="fas fa-shopping-cart" style="font-size:30px; color:#333; margin-bottom:10px;"></i>
+              <p>Your cart is empty</p>
+              <a href="tracks.php" style="color:#2bee79;">Browse Beats</a>
+            </div>`;
+          payButton.disabled = true;
+          payButton.style.opacity = '0.5';
+          if(cartItemCount) cartItemCount.textContent = '0';
+          updateTotals(0);
+      }
+
+      // RENDER
+      window.renderCheckout = function() {
+        cartList.innerHTML = '';
+        let total = 0;
+
+        if(cartData.length === 0) {
+            handleEmptyCart();
+            return;
+        }
+
+        cartData.forEach((item, index) => {
+            total += parseFloat(item.price);
+            const el = document.createElement('div');
+            el.className = 'cart-item';
+            el.innerHTML = `
+                <div class="cart-item-content" style="display:flex; gap:15px; align-items:center; flex:1;">
+                    <div class="cart-item-image" style="position:relative; width:60px; height:60px;">
+                        <img src="${item.img || 'https://via.placeholder.com/60'}" style="width:100%; height:100%; object-fit:cover; border-radius:6px;">
+                        <div class="image-overlay js-play-checkout" data-index="${index}">
+                            <i class="fas fa-play"></i>
+                        </div>
+                    </div>
+                    <div class="cart-item-info">
+                        <h4 style="margin:0; color:white; font-size:16px;">${item.name || item.title}</h4>
+                        <div class="item-meta" style="font-size:12px; color:#888;">
+                            <span>${item.producer || 'Kenton'}</span> • 
+                            <span style="color:#2bee79;">${item.licenseName}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="cart-item-actions" style="display:flex; align-items:center; gap:15px;">
+                    <div class="item-price" style="font-weight:bold; color:white;">$${parseFloat(item.price).toFixed(2)}</div>
+                    <button class="remove-item" onclick="removeItem(${index})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `;
+            cartList.appendChild(el);
+        });
+
+        if(cartItemCount) cartItemCount.textContent = cartData.length;
+        updateTotals(total);
+      };
+
+      function updateTotals(total) {
+          const t = total.toFixed(2);
+          if(cartSubtotal) cartSubtotal.textContent = `$${t}`;
+          if(cartTotal) cartTotal.textContent = `$${t}`;
+          if(payAmount) payAmount.textContent = `$${t}`;
+      }
+
+      // REMOVE ITEM
+      window.removeItem = function(index) {
+          cartData.splice(index, 1);
+          fetch('includes/save_cart.php', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ cart: cartData })
+          });
+          renderCheckout();
+      };
+
+      // PLAY FUNCTION (Hooks into Footer Player)
+      document.addEventListener('click', (e) => {
+          const playBtn = e.target.closest('.js-play-checkout');
+          if (playBtn) {
+              const index = playBtn.dataset.index;
+              const track = cartData[index];
+              // Assuming 'loadTrack' is the function in your footer.php
+              if (window.loadTrack && track) {
+                  // We construct a track object that matches what footer expects
+                  // get_cart.php returns 'name', 'img', 'producer'. 
+                  // If 'audio' isn't in DB, we might default to demo or need to fix get_cart.
+                  window.loadTrack({
+                      title: track.name || track.title,
+                      artist: track.producer || 'Kenton',
+                      cover: track.img,
+                      audio: track.audio || '#' // Needs audio link from DB
+                  });
+              } else {
+                  console.log("Player not found or track missing audio");
+              }
           }
-        });
+      });
+      
+      if(clearCartBtn) {
+          clearCartBtn.addEventListener('click', () => {
+              if(confirm("Clear cart?")) {
+                  cartData = [];
+                  removeItem(0); 
+              }
+          });
       }
 
-      // Format card inputs
-      function formatCardNumber(value) {
-        const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
-        const matches = v.match(/\d{4,16}/g);
-        const match = (matches && matches[0]) || '';
-        const parts = [];
-        for (let i = 0, len = match.length; i < len; i += 4) { parts.push(match.substring(i, i + 4)); }
-        return parts.length ? parts.join(' ') : value;
+      // CARD FORMATTING
+      const ccInput = document.getElementById('card-number');
+      const expInput = document.getElementById('card-expiry');
+      
+      if(ccInput) {
+          ccInput.addEventListener('input', function (e) {
+              this.value = this.value.replace(/\D/g, '').replace(/(.{4})/g, '$1 ').trim();
+          });
+      }
+      if(expInput) {
+          expInput.addEventListener('input', function (e) {
+              this.value = this.value.replace(/\D/g, '').replace(/^(\d{2})(\d)/, '$1/$2').substr(0, 5);
+          });
       }
 
-      function formatExpiry(value) {
-        const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
-        if (v.length >= 2) return v.substring(0, 2) + ' / ' + v.substring(2, 4);
-        return v;
-      }
+      // SUBMIT
+      const form = document.getElementById('payment-form');
+      if (form) {
+          form.addEventListener('submit', (e) => {
+              e.preventDefault();
+              if (cartData.length === 0) return alert("Cart is empty");
 
-      const cardNumberInput = document.getElementById('card-number');
-      if (cardNumberInput) {
-        cardNumberInput.addEventListener('input', (e) => { e.target.value = formatCardNumber(e.target.value); });
-      }
+              const originalText = payButton.innerHTML;
+              payButton.innerHTML = 'Processing...';
+              payButton.disabled = true;
 
-      const cardExpiryInput = document.getElementById('card-expiry');
-      if (cardExpiryInput) {
-        cardExpiryInput.addEventListener('input', (e) => { e.target.value = formatExpiry(e.target.value); });
-      }
+              const orderData = {
+                  user: {
+                      name: document.getElementById('username').value,
+                      email: document.getElementById('email').value
+                  },
+                  cart: cartData
+              };
 
-      // Initialize
-      updateCartCount();
-      renderCartItems();
+              fetch('includes/place_order.php', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(orderData)
+              })
+              .then(async response => {
+                  const text = await response.text();
+                  try { return JSON.parse(text); } 
+                  catch (e) { throw new Error(text); }
+              })
+              .then(data => {
+                  if(data.status === 'success') {
+                      localStorage.removeItem('cartItems'); 
+                      window.location.href = 'user-dashboard.php';
+                  } else {
+                      throw new Error(data.message);
+                  }
+              })
+              .catch(err => {
+                  console.error(err);
+                  alert('Payment Failed: ' + err.message);
+                  payButton.disabled = false;
+                  payButton.innerHTML = originalText;
+              });
+          });
+      }
     });
-
-    // --- PASTE THIS AT THE BOTTOM OF checkout.php (DEBUG MODE) ---
-    
-    const paymentForm = document.getElementById('payment-form');
-    if (paymentForm) {
-        paymentForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-
-            let cart = JSON.parse(localStorage.getItem('cartItems')) || [];
-            if (cart.length === 0) { alert('Cart is empty'); return; }
-
-            const payButton = document.getElementById('pay-button');
-            const originalText = payButton.innerHTML; 
-            payButton.innerHTML = 'Processing...';
-            payButton.disabled = true;
-
-            const nameInput = document.getElementById('username') || document.getElementById('fname');
-            const emailInput = document.getElementById('email');
-
-            const orderData = {
-                user: {
-                    name: nameInput ? nameInput.value : 'Guest', 
-                    email: emailInput ? emailInput.value : 'guest@example.com'
-                },
-                cart: cart
-            };
-
-            // Send to Database
-            fetch('includes/place_order.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(orderData)
-            })
-            .then(async response => {
-                // 1. Get the raw text from the server
-                const text = await response.text();
-                
-                // 2. Try to read it as JSON
-                try {
-                    const data = JSON.parse(text);
-                    return data;
-                } catch (err) {
-                    // 3. If it fails, THROW the raw text so we can see the PHP error
-                    throw new Error("Server Error: " + text);
-                }
-            })
-            .then(data => {
-                if(data.status === 'success') {
-                    const library = JSON.parse(localStorage.getItem('myLibrary')) || [];
-                    const newItems = cart.map(item => ({...item, purchaseDate: new Date().toLocaleDateString()}));
-                    localStorage.setItem('myLibrary', JSON.stringify([...newItems, ...library]));
-                    
-                    localStorage.removeItem('cartItems');
-                    alert('Payment Successful!');
-                    window.location.href = 'user-dashboard.php';
-                } else {
-                    alert('Database Error: ' + (data.message || 'Unknown error'));
-                    payButton.disabled = false;
-                    payButton.innerHTML = originalText;
-                }
-            })
-            .catch(err => {
-                // --- THIS IS THE IMPORTANT PART ---
-                console.error(err);
-                // This will alert the ACTUAL error (like "404 Not Found" or PHP error text)
-                alert("Debug Error:\n" + err.message.substring(0, 400)); 
-                payButton.disabled = false;
-                payButton.innerHTML = originalText;
-            });
-        });
-    }
   </script>
 </body>
 </html>

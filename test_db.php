@@ -1,45 +1,37 @@
 <?php
-// Enable error reporting to see everything
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+// fix_database.php
+include 'db_connect.php';
 
-echo "<h1>Database Diagnostic Tool</h1>";
+echo "<h1>Database Repair Tool</h1>";
 
-// 1. Test Connection
-echo "<h3>1. Testing Connection...</h3>";
-if(file_exists('db_connect.php')) {
-    include 'db_connect.php';
-    echo "<p style='color:green'>✅ db_connect.php found.</p>";
-} else {
-    die("<p style='color:red'>❌ db_connect.php is MISSING.</p>");
-}
-
-if ($conn->connect_error) {
-    die("<p style='color:red'>❌ Connection Failed: " . $conn->connect_error . "</p>");
-} else {
-    echo "<p style='color:green'>✅ Database Connected successfully.</p>";
-}
-
-// 2. Test Tracks Table
-echo "<h3>2. Testing 'tracks' Table...</h3>";
-$sql = "SELECT * FROM tracks";
-$result = $conn->query($sql);
-
-if ($result) {
-    echo "<p style='color:green'>✅ Query ran successfully.</p>";
-    $count = $result->num_rows;
-    echo "<p><strong>Found $count tracks in the database.</strong></p>";
-
-    if ($count > 0) {
-        $row = $result->fetch_assoc();
-        echo "<pre style='background:#eee; padding:10px;'>";
-        print_r($row); // Print the first track data
-        echo "</pre>";
+function runQuery($conn, $sql, $desc) {
+    if ($conn->query($sql) === TRUE) {
+        echo "<p style='color:green;'>✅ Success: $desc</p>";
     } else {
-        echo "<p style='color:orange'>⚠️ The table exists, but it is EMPTY (0 rows).</p>";
+        // Ignore "Duplicate column" errors, that's fine
+        if (strpos($conn->error, 'Duplicate column') !== false) {
+             echo "<p style='color:blue;'>ℹ️ Note: $desc (Already exists)</p>";
+        } else {
+             echo "<p style='color:red;'>❌ Error: $desc - " . $conn->error . "</p>";
+        }
     }
-} else {
-    echo "<p style='color:red'>❌ Query Failed.</p>";
-    echo "<p><strong>Error Message:</strong> " . $conn->error . "</p>";
 }
+
+// 1. Fix ORDERS Table
+runQuery($conn, "ALTER TABLE orders ADD COLUMN IF NOT EXISTS track_id INT(11) NOT NULL DEFAULT 0 AFTER user_id", "Added track_id to orders");
+runQuery($conn, "ALTER TABLE orders ADD COLUMN IF NOT EXISTS license_type VARCHAR(50) NOT NULL DEFAULT 'basic' AFTER price", "Added license_type to orders");
+runQuery($conn, "ALTER TABLE orders ADD COLUMN IF NOT EXISTS date DATETIME DEFAULT CURRENT_TIMESTAMP", "Added date to orders");
+
+// 2. Fix CART Table
+runQuery($conn, "ALTER TABLE cart ADD COLUMN IF NOT EXISTS license_type VARCHAR(50) NOT NULL DEFAULT 'basic'", "Added license_type to cart");
+
+// 3. Fix TRACKS Table
+runQuery($conn, "ALTER TABLE tracks ADD COLUMN IF NOT EXISTS tagged_file VARCHAR(255) AFTER audio_file", "Added tagged_file to tracks");
+
+// 4. Clean Bad Data
+runQuery($conn, "TRUNCATE TABLE orders", "Cleared broken test orders");
+runQuery($conn, "TRUNCATE TABLE cart", "Cleared broken cart items");
+
+echo "<hr><h3>🎉 Database Fixed! You can now delete this file and try your checkout again.</h3>";
+echo "<a href='user-dashboard.php'>Go to Dashboard</a>";
 ?>

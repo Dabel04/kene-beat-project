@@ -10,27 +10,23 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 
-// Multipliers: Basic=1, Premium=4, Exclusive=20
+// 1. Fetch Cart with AUDIO FILES
 $stmt = $conn->prepare("
     SELECT c.license_type, 
            t.id, 
            t.title as name, 
-           t.price * CASE c.license_type 
-               WHEN 'basic' THEN 1 
-               WHEN 'premium' THEN 4 
-               WHEN 'exclusive' THEN 20 
-               ELSE 1
-           END as price,
+           t.price, 
            'KentonTheProducer' as producer,
-           t.cover_image as img
+           t.cover_image as img,
+           t.audio_file, 
+           t.tagged_file
     FROM cart c 
     JOIN tracks t ON c.track_id = t.id 
     WHERE c.user_id = ?
 ");
 
 if (!$stmt) {
-    // Return empty if query fails (prevents frontend crash)
-    echo json_encode(['success' => false, 'items' => []]); 
+    echo json_encode(['success' => false, 'message' => 'Query failed']);
     exit;
 }
 
@@ -40,11 +36,35 @@ $result = $stmt->get_result();
 
 $items = [];
 while ($row = $result->fetch_assoc()) {
-    $type = ucfirst($row['license_type']);
-    // Format Name: "Premium Lease" or "Exclusive Rights"
-    $suffix = (strtolower($row['license_type']) == 'exclusive') ? ' Rights' : ' Lease';
-    $row['licenseName'] = $type . $suffix;
-    $items[] = $row;
+    $basePrice = floatval($row['price']);
+    $licenseKey = strtolower($row['license_type']);
+    
+    // 2. Calculate Real Price
+    $multiplier = 1;
+    $licenseName = "Basic Lease";
+    
+    if ($licenseKey === 'premium') {
+        $multiplier = 4;
+        $licenseName = "Premium Lease";
+    } elseif ($licenseKey === 'exclusive') {
+        $multiplier = 20;
+        $licenseName = "Exclusive Rights";
+    }
+    
+    $finalPrice = $basePrice * $multiplier;
+
+    // 3. Format Output
+    $items[] = [
+        'id' => $row['id'],
+        'name' => $row['name'],
+        'producer' => $row['producer'],
+        'price' => $finalPrice,
+        'licenseKey' => $licenseKey,
+        'licenseName' => $licenseName,
+        'img' => $row['img'],
+        // Prefer tagged file for preview, fallback to raw audio
+        'audio' => !empty($row['tagged_file']) ? $row['tagged_file'] : $row['audio_file']
+    ];
 }
 
 echo json_encode(['success' => true, 'items' => $items]);

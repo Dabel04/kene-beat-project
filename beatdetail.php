@@ -22,18 +22,15 @@ if ($result->num_rows > 0) {
     $row = $result->fetch_assoc();
     
     // --- SECURITY FIX: USE TAGGED FILE ---
-    // If tagged file exists, play that. Otherwise fallback (securely).
     $previewAudio = !empty($row['tagged_file']) ? $row['tagged_file'] : $row['audio_file'];
 
     // --- PRICING LOGIC ---
-    // We take the Base Price from DB.
-    // We calculate the upgrades based on the Base Price.
     $basePrice = floatval($row['price']);
     
     $prices = [
-        'basic'     => $basePrice,              // DB Price (e.g. $25)
-        'premium'   => $basePrice * 4,          // Approx $100
-        'exclusive' => $basePrice * 20          // Approx $500
+        'basic'     => $basePrice,
+        'premium'   => $basePrice * 4,
+        'exclusive' => $basePrice * 20
     ];
 
     // Prepare Data for JavaScript
@@ -45,7 +42,7 @@ if ($result->num_rows > 0) {
         'key' => $row['track_key'], 
         'tags' => explode(',', $row['tags']),
         'cover' => $row['cover_image'],
-        'audio' => $previewAudio, // <--- Secure Link
+        'audio' => $previewAudio,
         'prices' => $prices,
         'desc' => "Professional quality instrumental. Perfect for recording artists. " . $row['tags'] . " vibes."
     );
@@ -342,8 +339,8 @@ $relatedStmt->close();
             });
         });
 
-        // --- 5. CART LOGIC ---
-        function addToCartHandler() {
+        // --- 5. CART LOGIC (WITH DATABASE SYNC) ---
+        function addToCartHandler(redirect = false) {
             let licenseName = 'Basic Lease';
             if(currentLicenseType === 'premium') licenseName = 'Premium Lease';
             if(currentLicenseType === 'exclusive') licenseName = 'Exclusive Rights';
@@ -358,26 +355,65 @@ $relatedStmt->close();
                 img: trackData.cover
             };
 
-            // Save to Storage
+            // 1. Save to LocalStorage
             let cart = JSON.parse(localStorage.getItem('cartItems')) || [];
-            cart.push(item);
+            
+            // Check for duplicates
+            const existingIndex = cart.findIndex(c => c.id === item.id);
+            if(existingIndex !== -1) {
+                cart[existingIndex] = item; // Update existing
+            } else {
+                cart.push(item);
+            }
+            
             localStorage.setItem('cartItems', JSON.stringify(cart));
             
-            // Open Cart (Click the hidden button in footer)
-            const openCartBtn = document.getElementById('open-cart-btn');
-            if(openCartBtn) openCartBtn.click();
+            // 2. CRITICAL FIX: SYNC WITH SERVER IMMEDIATELY
+            const isLoggedIn = <?php echo isset($_SESSION['user_id']) ? 'true' : 'false'; ?>;
+            
+            if(isLoggedIn) {
+                fetch('includes/save_cart.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ cart: cart })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if(redirect) {
+                        window.location.href = 'checkout.php';
+                    } else {
+                        // Open Cart Sidebar via Footer trigger
+                        const openCartBtn = document.getElementById('open-cart-btn');
+                        if(openCartBtn) openCartBtn.click();
+                        
+                        // Force Footer to reload from LocalStorage
+                        if(typeof initCart === 'function') initCart(); 
+                    }
+                })
+                .catch(err => {
+                    console.error("Sync Error:", err);
+                    if(redirect) window.location.href = 'checkout.php'; // Fail safe
+                });
+            } else {
+                // Not logged in
+                if(redirect) {
+                    window.location.href = 'checkout.php';
+                } else {
+                    const openCartBtn = document.getElementById('open-cart-btn');
+                    if(openCartBtn) openCartBtn.click();
+                }
+            }
         }
 
         const addToCartBtn = document.getElementById('detail-add-cart');
         const buyNowBtn = document.querySelector('.buy-now-btn');
 
-        if(addToCartBtn) addToCartBtn.addEventListener('click', addToCartHandler);
+        if(addToCartBtn) {
+            addToCartBtn.addEventListener('click', () => addToCartHandler(false));
+        }
         
         if(buyNowBtn) {
-            buyNowBtn.addEventListener('click', () => {
-                addToCartHandler();
-                window.location.href = 'checkout.php'; 
-            });
+            buyNowBtn.addEventListener('click', () => addToCartHandler(true));
         }
     });
 </script>

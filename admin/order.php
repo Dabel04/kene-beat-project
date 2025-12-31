@@ -1,5 +1,5 @@
 <?php
-// 1. DIRECT DATABASE CONNECTION
+// 1. DATABASE CONNECTION
 $servername = "localhost";
 $username = "dabel";
 $password = "go uni1234";
@@ -7,41 +7,49 @@ $dbname = "kene_admin";
 
 $conn = new mysqli($servername, $username, $password, $dbname);
 
-// Initialize variables
+// Variables
 $orders = [];
 $totalRevenue = 0;
 $bestSellers = [];
 $totalOrders = 0;
 
-// 2. FETCH DATA IF CONNECTED
-if (!$conn->connect_error) {
-    
-    // A. Check if table exists
-    $check = $conn->query("SHOW TABLES LIKE 'orders'");
-    if($check && $check->num_rows > 0) {
-        
-        // B. Get All Orders
-        $sql = "SELECT * FROM orders ORDER BY date DESC";
-        $result = $conn->query($sql);
-        if ($result) {
-            while($row = $result->fetch_assoc()) {
-                $orders[] = $row;
-                $totalRevenue += floatval($row['price']);
-            }
-            $totalOrders = count($orders);
-        }
+// Pagination Variables
+$limit = 10; // Orders per page
+$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$start = ($page > 1) ? ($page * $limit) - $limit : 0;
+$totalPages = 1;
 
-        // C. Get Best Sellers
-        $bestSql = "SELECT track_title, COUNT(*) as sales_count, SUM(price) as revenue 
-                    FROM orders 
-                    GROUP BY track_title 
-                    ORDER BY sales_count DESC 
-                    LIMIT 5";
-        $bestResult = $conn->query($bestSql);
-        if ($bestResult) {
-            while($row = $bestResult->fetch_assoc()) {
-                $bestSellers[] = $row;
-            }
+if (!$conn->connect_error) {
+    // A. Total Revenue & Count (Global)
+    $sumSql = "SELECT SUM(price) as total_rev, COUNT(*) as total_ord FROM orders";
+    $sumRes = $conn->query($sumSql);
+    if($row = $sumRes->fetch_assoc()){
+        $totalRevenue = floatval($row['total_rev']);
+        $totalOrders = intval($row['total_ord']);
+    }
+
+    // B. Calculate Total Pages
+    $totalPages = ceil($totalOrders / $limit);
+
+    // C. Get Paged Orders
+    $sql = "SELECT * FROM orders ORDER BY date DESC LIMIT $start, $limit";
+    $result = $conn->query($sql);
+    if ($result) {
+        while($row = $result->fetch_assoc()) {
+            $orders[] = $row;
+        }
+    }
+
+    // D. Get Best Sellers (Top 5)
+    $bestSql = "SELECT track_title, COUNT(*) as sales_count, SUM(price) as revenue 
+                FROM orders 
+                GROUP BY track_title 
+                ORDER BY sales_count DESC 
+                LIMIT 5";
+    $bestResult = $conn->query($bestSql);
+    if ($bestResult) {
+        while($row = $bestResult->fetch_assoc()) {
+            $bestSellers[] = $row;
         }
     }
 }
@@ -113,52 +121,32 @@ if (!$conn->connect_error) {
                     <h1 class="text-4xl md:text-5xl font-black tracking-tight">Orders & <span class="text-primary">Sales</span></h1>
                     <p class="text-gray-500 dark:text-gray-400 text-lg">Track your revenue stream.</p>
                 </div>
-                <button class="flex items-center gap-2 bg-surface-dark border border-white/10 hover:bg-white/5 text-white px-6 py-3 rounded-full font-bold transition-all">
-                    <span class="material-symbols-outlined text-xl">download</span><span>Export CSV</span>
-                </button>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6">
                 <div class="glass-panel p-6 rounded-2xl h-40 flex flex-col justify-between">
-                    <div class="flex justify-between">
-                        <span class="material-symbols-outlined p-2 bg-white/5 rounded-lg text-primary">payments</span>
-                    </div>
-                    <div>
-                        <p class="text-sm text-gray-400">Total Revenue</p>
-                        <h3 class="text-3xl font-bold">$<?php echo number_format($totalRevenue, 2); ?></h3>
-                    </div>
+                    <div class="flex justify-between"><span class="material-symbols-outlined p-2 bg-white/5 rounded-lg text-primary">payments</span></div>
+                    <div><p class="text-sm text-gray-400">Total Revenue</p><h3 class="text-3xl font-bold">$<?php echo number_format($totalRevenue, 2); ?></h3></div>
                 </div>
                 <div class="glass-panel p-6 rounded-2xl h-40 flex flex-col justify-between">
-                    <div class="flex justify-between">
-                        <span class="material-symbols-outlined p-2 bg-white/5 rounded-lg text-blue-400">shopping_bag</span>
-                    </div>
-                    <div>
-                        <p class="text-sm text-gray-400">Total Orders</p>
-                        <h3 class="text-3xl font-bold"><?php echo $totalOrders; ?></h3>
-                    </div>
+                    <div class="flex justify-between"><span class="material-symbols-outlined p-2 bg-white/5 rounded-lg text-blue-400">shopping_bag</span></div>
+                    <div><p class="text-sm text-gray-400">Total Orders</p><h3 class="text-3xl font-bold"><?php echo $totalOrders; ?></h3></div>
                 </div>
                 <div class="glass-panel p-6 rounded-2xl h-40 flex flex-col justify-between">
-                    <div class="flex justify-between">
-                        <span class="material-symbols-outlined p-2 bg-white/5 rounded-lg text-purple-400">star</span>
-                    </div>
-                    <div>
-                        <p class="text-sm text-gray-400">Best Seller</p>
-                        <h3 class="text-xl font-bold truncate">
-                            <?php echo !empty($bestSellers) ? htmlspecialchars($bestSellers[0]['track_title']) : 'No sales yet'; ?>
-                        </h3>
-                    </div>
+                    <div class="flex justify-between"><span class="material-symbols-outlined p-2 bg-white/5 rounded-lg text-purple-400">star</span></div>
+                    <div><p class="text-sm text-gray-400">Best Seller</p><h3 class="text-xl font-bold truncate"><?php echo !empty($bestSellers) ? htmlspecialchars($bestSellers[0]['track_title']) : 'No sales yet'; ?></h3></div>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 
-                <div class="lg:col-span-2 glass-panel rounded-2xl overflow-hidden">
+                <div class="lg:col-span-2 glass-panel rounded-2xl overflow-hidden flex flex-col">
                     <div class="p-6 border-b border-white/5 flex justify-between items-center">
                         <h3 class="text-lg font-bold text-white">Recent Transactions</h3>
-                        <span class="text-xs text-gray-400"><?php echo count($orders); ?> records found</span>
+                        <span class="text-xs text-gray-400">Page <?php echo $page; ?> of <?php echo $totalPages; ?></span>
                     </div>
                     
-                    <div class="overflow-x-auto">
+                    <div class="overflow-x-auto flex-1">
                         <div class="grid grid-cols-12 gap-4 p-4 text-xs font-bold text-gray-400 uppercase bg-black/20">
                             <div class="col-span-2 pl-2">ID</div>
                             <div class="col-span-4">Customer</div>
@@ -168,7 +156,7 @@ if (!$conn->connect_error) {
 
                         <div class="divide-y divide-white/5">
                             <?php if (empty($orders)): ?>
-                                <div class="p-8 text-center text-gray-500">No orders found yet.</div>
+                                <div class="p-8 text-center text-gray-500">No orders found.</div>
                             <?php else: ?>
                                 <?php foreach($orders as $order): ?>
                                     <div class="grid grid-cols-12 gap-4 p-4 items-center hover:bg-white/5 transition-colors text-sm group">
@@ -184,6 +172,24 @@ if (!$conn->connect_error) {
                             <?php endif; ?>
                         </div>
                     </div>
+
+                    <?php if($totalPages > 1): ?>
+                    <div class="p-4 border-t border-white/5 flex justify-center items-center gap-2">
+                        <?php if($page > 1): ?>
+                            <a href="?page=<?php echo $page-1; ?>" class="px-3 py-1 rounded bg-white/5 hover:bg-primary hover:text-black text-xs font-bold transition-colors">Prev</a>
+                        <?php endif; ?>
+                        
+                        <?php for($i=1; $i<=$totalPages; $i++): ?>
+                            <a href="?page=<?php echo $i; ?>" class="px-3 py-1 rounded <?php echo ($i == $page) ? 'bg-primary text-black' : 'bg-white/5 text-gray-400 hover:text-white'; ?> text-xs font-bold transition-colors">
+                                <?php echo $i; ?>
+                            </a>
+                        <?php endfor; ?>
+
+                        <?php if($page < $totalPages): ?>
+                            <a href="?page=<?php echo $page+1; ?>" class="px-3 py-1 rounded bg-white/5 hover:bg-primary hover:text-black text-xs font-bold transition-colors">Next</a>
+                        <?php endif; ?>
+                    </div>
+                    <?php endif; ?>
                 </div>
 
                 <div class="glass-panel rounded-2xl overflow-hidden h-fit">

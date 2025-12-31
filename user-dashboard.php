@@ -1,5 +1,5 @@
 <?php
-// 1. Include Header (Session, DB, Navbar)
+// 1. Include Header
 include 'header.php';
 
 // Force login check
@@ -13,14 +13,13 @@ $user = isset($_SESSION['username']) ? $_SESSION['username'] : 'Producer';
 $email = isset($_SESSION['email']) ? $_SESSION['email'] : 'artist@example.com';
 $msg = "";
 
-// --- 2. HANDLE SETTINGS FORM SUBMISSION ---
+// --- 2. HANDLE SETTINGS FORM ---
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_profile'])) {
     $new_email = trim($_POST['email']);
     $new_pass = $_POST['new_password'];
     $confirm_pass = $_POST['confirm_password'];
     $current_pass = $_POST['current_password'];
 
-    // Verify Current Password First
     $stmt = $conn->prepare("SELECT password_hash FROM users WHERE user_id = ?");
     $stmt->bind_param("i", $current_user_id);
     $stmt->execute();
@@ -29,24 +28,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_profile'])) {
     $stmt->close();
 
     if ($user_data && password_verify($current_pass, $user_data['password_hash'])) {
-        
-        // Update Email
         if (!empty($new_email) && $new_email !== $_SESSION['email']) {
-            if (filter_var($new_email, FILTER_VALIDATE_EMAIL)) {
-                $upd = $conn->prepare("UPDATE users SET email = ? WHERE user_id = ?");
-                $upd->bind_param("si", $new_email, $current_user_id);
-                if ($upd->execute()) {
-                    $_SESSION['email'] = $new_email;
-                    $email = $new_email;
-                    $msg .= "<div class='alert alert-success'>✅ Email updated successfully!</div>";
-                }
-                $upd->close();
-            } else {
-                $msg .= "<div class='alert alert-danger'>⚠️ Invalid email format.</div>";
+            $upd = $conn->prepare("UPDATE users SET email = ? WHERE user_id = ?");
+            $upd->bind_param("si", $new_email, $current_user_id);
+            if ($upd->execute()) {
+                $_SESSION['email'] = $new_email;
+                $email = $new_email;
+                $msg .= "<div class='alert alert-success'>✅ Email updated successfully!</div>";
             }
+            $upd->close();
         }
-
-        // Update Password
         if (!empty($new_pass)) {
             if ($new_pass === $confirm_pass) {
                 if (strlen($new_pass) >= 6) {
@@ -54,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_profile'])) {
                     $upd = $conn->prepare("UPDATE users SET password_hash = ? WHERE user_id = ?");
                     $upd->bind_param("si", $hash, $current_user_id);
                     if ($upd->execute()) {
-                        $msg .= "<div class='alert alert-success'>✅ Password changed successfully!</div>";
+                        $msg .= "<div class='alert alert-success'>✅ Password updated successfully!</div>";
                     }
                     $upd->close();
                 } else {
@@ -64,47 +55,40 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_profile'])) {
                 $msg .= "<div class='alert alert-danger'>⚠️ New passwords do not match.</div>";
             }
         }
-        
-        if (empty($new_email) && empty($new_pass)) {
-             $msg .= "<div class='alert alert-info'>No changes made.</div>";
-        }
-
     } else {
-        $msg .= "<div class='alert alert-danger'>❌ Incorrect current password. Changes not saved.</div>";
+        $msg .= "<div class='alert alert-danger'>❌ Incorrect current password.</div>";
     }
 }
 
-// --- 3. FETCH STATS (Total Spent & Count) ---
+// --- 3. FETCH STATS ---
 $totalSpent = 0.00;
 $totalBeats = 0;
-
 if (isset($conn) && !$conn->connect_error) {
-    // Calculate Total Spent from 'orders' table
     $statStmt = $conn->prepare("SELECT SUM(price) as total_spent, COUNT(*) as total_count FROM orders WHERE user_id = ?");
     $statStmt->bind_param("i", $current_user_id);
     $statStmt->execute();
     $statRes = $statStmt->get_result();
     if ($statRow = $statRes->fetch_assoc()) {
-        $totalSpent = $statRow['total_spent'] === null ? 0.00 : floatval($statRow['total_spent']);
+        $totalSpent = floatval($statRow['total_spent']);
         $totalBeats = intval($statRow['total_count']);
     }
     $statStmt->close();
 }
 
-// --- 4. FETCH LIBRARY (Purchased Tracks) ---
+// --- 4. FETCH LIBRARY ---
+// Safe Join Query
 $purchased_beats = [];
 if (isset($conn) && !$conn->connect_error) {
-    // FIX: Using JOIN on 'track_title' instead of 'track_id' to match your current DB setup
-    // Also REMOVED 'o.license_type' from query to prevent crashes if column is missing
     $sql = "SELECT 
                 o.date as purchase_date,
                 o.price,
+                o.license_type, 
                 t.title as track_title, 
                 t.cover_image, 
                 t.bpm, 
                 t.track_key 
             FROM orders o 
-            JOIN tracks t ON o.track_title = t.title 
+            JOIN tracks t ON (o.track_id = t.id OR o.track_title = t.title)
             WHERE o.user_id = ? 
             ORDER BY o.date DESC";
             
@@ -121,23 +105,24 @@ if (isset($conn) && !$conn->connect_error) {
 ?>
 
 <style>
-    body { background-color: #000; color: white; }
+    body { background-color: #000; color: white; font-family: 'Poppins', sans-serif; }
     
     .dashboard-container {
-        margin-top: var(--nav-height);
-        padding-top: 50px;
-        min-height: 80vh;
-        padding-bottom: 50px;
+        margin-top: 100px; /* Space for fixed header */
+        padding-top: 40px;
+        min-height: 100vh;
+        padding-bottom: 80px;
     }
 
     /* Sidebar Styling */
     .dashboard-sidebar {
-        background: #0a0a0a;
+        background: #0f0f0f;
         border: 1px solid #222;
         border-radius: 12px;
         overflow: hidden;
         position: sticky;
-        top: 100px;
+        top: 120px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
     }
 
     .user-profile-card {
@@ -152,7 +137,7 @@ if (isset($conn) && !$conn->connect_error) {
         height: 100px;
         border-radius: 50%;
         object-fit: cover;
-        border: 2px solid #2bee79;
+        border: 3px solid #2bee79;
         padding: 3px;
         background: #000;
         margin-bottom: 15px;
@@ -162,29 +147,28 @@ if (isset($conn) && !$conn->connect_error) {
     .user-name { color: white; font-weight: 700; font-size: 20px; margin-bottom: 5px; }
     .user-email { color: #666; font-size: 13px; margin-bottom: 0; }
 
-    .dash-nav { padding: 10px 0; }
+    .dash-nav { padding: 15px 0; }
     .dash-nav-link {
-        display: block;
+        display: flex;
+        align-items: center;
+        gap: 12px;
         padding: 15px 25px;
         color: #888;
         font-weight: 500;
         text-decoration: none;
         transition: 0.3s;
         border-left: 3px solid transparent;
-        display: flex;
-        align-items: center;
-        gap: 10px;
         cursor: pointer;
     }
 
-    .dash-nav-link i { width: 20px; text-align: center; }
-
     .dash-nav-link:hover, .dash-nav-link.active {
-        background: #111;
+        background: #161616;
         color: white;
         border-left-color: #2bee79;
         text-decoration: none;
     }
+    
+    .dash-nav-link i { width: 20px; text-align: center; font-size: 16px; }
 
     /* Main Content Styling */
     .dash-header {
@@ -193,95 +177,129 @@ if (isset($conn) && !$conn->connect_error) {
         justify-content: space-between;
         align-items: flex-end;
     }
-    .dash-header h2 { color: white; font-weight: 800; margin: 0; letter-spacing: -1px; }
-    .dash-header p { color: #666; margin: 0; margin-top: 5px; }
+    .dash-header h2 { color: white; font-weight: 800; font-size: 32px; margin: 0; letter-spacing: -1px; }
+    .dash-header p { color: #666; margin: 0; margin-top: 5px; font-size: 16px; }
 
     .stat-cards-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
-        gap: 20px;
+        gap: 25px;
         margin-bottom: 40px;
     }
 
     .stat-card {
-        background: #0a0a0a;
+        background: #0f0f0f;
         border: 1px solid #222;
-        padding: 25px;
+        padding: 30px;
         border-radius: 12px;
         position: relative;
         overflow: hidden;
+        transition: transform 0.3s;
     }
+    .stat-card:hover { transform: translateY(-5px); border-color: #333; }
 
-    .stat-card h3 { color: #666; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
-    .stat-card .value { color: white; font-size: 32px; font-weight: 700; }
+    .stat-card h3 { color: #666; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; font-weight: 600; }
+    .stat-card .value { color: white; font-size: 36px; font-weight: 700; }
     .stat-card .icon-bg {
         position: absolute;
-        bottom: -10px;
-        right: -10px;
+        bottom: -15px;
+        right: -15px;
         font-size: 80px;
         color: rgba(255,255,255,0.03);
         transform: rotate(-15deg);
     }
 
-    /* Purchases List Styling */
-    .downloads-section, .content-box {
-        background: #0a0a0a;
+    /* Content Box */
+    .content-box {
+        background: #0f0f0f;
         border: 1px solid #222;
         border-radius: 12px;
-        padding: 25px;
+        padding: 30px;
+        min-height: 400px;
     }
     
+    .section-title { font-size: 20px; font-weight: 700; margin-bottom: 25px; color: white; border-bottom: 1px solid #222; padding-bottom: 15px; }
+
     .download-item {
         display: flex;
         align-items: center;
-        padding: 15px 0;
-        border-bottom: 1px solid #222;
+        padding: 20px;
+        border-bottom: 1px solid #1a1a1a;
+        transition: 0.2s;
+        border-radius: 8px;
     }
     .download-item:last-child { border-bottom: none; }
+    .download-item:hover { background: #131313; }
 
     .dl-img {
-        width: 60px;
-        height: 60px;
-        border-radius: 6px;
+        width: 65px;
+        height: 65px;
+        border-radius: 8px;
         object-fit: cover;
         margin-right: 20px;
     }
     
     .dl-info { flex-grow: 1; }
-    .dl-title { color: white; font-weight: 700; font-size: 16px; display: block; }
-    .dl-meta { color: #666; font-size: 12px; }
+    .dl-title { color: white; font-weight: 700; font-size: 16px; display: block; margin-bottom: 4px; }
+    .dl-meta { color: #666; font-size: 13px; display: flex; align-items: center; gap: 10px; }
+    .license-pill {
+        background: rgba(43, 238, 121, 0.1);
+        color: #2bee79;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        text-transform: uppercase;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+    }
 
     .btn-download {
-        background: #111;
-        color: #ccc;
-        border: 1px solid #333;
-        padding: 8px 15px;
+        background: #fff;
+        color: #000;
+        border: none;
+        padding: 10px 20px;
         border-radius: 30px;
-        font-size: 12px;
-        font-weight: 600;
+        font-size: 13px;
+        font-weight: 700;
         transition: 0.3s;
         text-decoration: none;
         display: inline-flex;
         align-items: center;
-        gap: 5px;
+        gap: 8px;
     }
     .btn-download:hover {
         background: #2bee79;
         color: black;
-        border-color: #2bee79;
+        transform: scale(1.05);
     }
     
     /* Alert Styles */
-    .alert { padding: 15px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; }
+    .alert { padding: 15px; border-radius: 8px; margin-bottom: 25px; font-size: 14px; display: flex; align-items: center; gap: 10px; }
     .alert-success { background: rgba(43, 238, 121, 0.1); border: 1px solid #2bee79; color: #2bee79; }
     .alert-danger { background: rgba(255, 71, 87, 0.1); border: 1px solid #ff4757; color: #ff4757; }
-    .alert-info { background: rgba(255, 255, 255, 0.05); border: 1px solid #444; color: #ccc; }
 
-    input { width: 100%; background: #111; border: 1px solid #333; color: white; padding: 12px; border-radius: 8px; margin-bottom: 10px; }
+    /* Form Styles */
+    .settings-group { margin-bottom: 20px; }
+    .settings-group label { display: block; color: #888; margin-bottom: 8px; font-size: 14px; }
+    input.form-control { 
+        width: 100%; background: #050505; border: 1px solid #222; 
+        color: white; padding: 15px; border-radius: 8px; 
+        outline: none; transition: 0.3s; 
+    }
+    input.form-control:focus { border-color: #2bee79; }
+    
+    .btn-save {
+        background: #2bee79; color: black; font-weight: 800;
+        border: none; padding: 15px 40px; border-radius: 8px;
+        cursor: pointer; transition: 0.3s; text-transform: uppercase; letter-spacing: 1px;
+    }
+    .btn-save:hover { background: white; }
 
     @media (max-width: 991px) {
         .stat-cards-grid { grid-template-columns: 1fr; }
         .dashboard-sidebar { position: static; margin-bottom: 30px; }
+        .download-item { flex-direction: column; align-items: flex-start; gap: 15px; }
+        .btn-download { width: 100%; justify-content: center; }
     }
 </style>
 
@@ -291,14 +309,15 @@ if (isset($conn) && !$conn->connect_error) {
         <div class="col-lg-3">
             <div class="dashboard-sidebar">
                 <div class="user-profile-card">
-                    <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($user); ?>&background=111&color=2bee79" alt="User" class="user-avatar">
+                    <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($user); ?>&background=000&color=2bee79&size=128" alt="User" class="user-avatar">
                     <h3 class="user-name"><?php echo htmlspecialchars($user); ?></h3>
-                    <p class="user-email">User ID: #<?php echo $current_user_id; ?></p>
+                    <p class="user-email">ID: #<?php echo $current_user_id; ?></p>
                 </div>
                 <div class="dash-nav">
-                    <a onclick="showTab('overview')" class="dash-nav-link active" id="btn-overview"><i class="fa fa-home"></i> Overview</a>
+                    <a onclick="showTab('overview')" class="dash-nav-link active" id="btn-overview"><i class="fa fa-th-large"></i> Overview</a>
                     <a onclick="showTab('library')" class="dash-nav-link" id="btn-library"><i class="fa fa-music"></i> My Library</a>
                     <a onclick="showTab('settings')" class="dash-nav-link" id="btn-settings"><i class="fa fa-cog"></i> Settings</a>
+                    <div style="height: 1px; background: #222; margin: 15px 25px;"></div>
                     <a href="logout.php" class="dash-nav-link" style="color: #ff4757;"><i class="fa fa-sign-out"></i> Log Out</a>
                 </div>
             </div>
@@ -320,26 +339,25 @@ if (isset($conn) && !$conn->connect_error) {
                     <div class="stat-card">
                         <h3>Purchased Beats</h3>
                         <div class="value"><?php echo $totalBeats; ?></div>
-                        <i class="fa fa-music icon-bg"></i>
+                        <i class="fa fa-shopping-bag icon-bg"></i>
                     </div>
                     <div class="stat-card">
-                        <h3>Total Spent</h3>
-                        <div class="value">$<?php echo number_format($totalSpent, 2); ?></div> 
-                        <i class="fa fa-usd icon-bg"></i>
+                        <h3>Total Invested</h3>
+                        <div class="value">$<?php echo number_format($totalSpent, 2); ?></div>
+                        <i class="fa fa-dollar icon-bg"></i>
                     </div>
                     <div class="stat-card">
                         <h3>Loyalty Points</h3>
-                        <div class="value"><?php echo floor($totalSpent * 10); ?></div>
+                        <div class="value"><?php echo floor($totalSpent * 5); ?></div>
                         <i class="fa fa-star icon-bg"></i>
                     </div>
                 </div>
 
-                <div class="downloads-section">
-                    <h4 style="color:white; margin-bottom: 20px; font-weight:700;">Recent Purchases</h4>
-                    
+                <div class="content-box">
+                    <h4 class="section-title">Recent Activity</h4>
                     <?php if(empty($purchased_beats)): ?>
                         <div style="text-align:center; padding: 40px; color:#666;">
-                            <i class="fa fa-shopping-cart" style="font-size: 40px; margin-bottom:10px; opacity:0.5;"></i>
+                            <i class="fa fa-folder-open" style="font-size: 40px; margin-bottom:15px; opacity:0.3;"></i>
                             <p>You haven't purchased any beats yet.</p>
                             <a href="tracks.php" style="color:#2bee79; text-decoration:underline;">Browse Beats</a>
                         </div>
@@ -347,18 +365,17 @@ if (isset($conn) && !$conn->connect_error) {
                         <?php foreach(array_slice($purchased_beats, 0, 3) as $beat): ?>
                             <?php 
                                 $img = !empty($beat['cover_image']) ? $beat['cover_image'] : 'https://via.placeholder.com/60';
-                                // Link by TITLE since IDs aren't fully integrated in your orders yet
                                 $dl_link = "download.php?track=" . urlencode($beat['track_title']);
+                                $licenseName = isset($beat['license_type']) ? ucfirst($beat['license_type']) : 'Standard';
                             ?>
                             <div class="download-item">
                                 <img src="<?php echo htmlspecialchars($img); ?>" alt="Cover" class="dl-img" onerror="this.src='https://via.placeholder.com/60'">
                                 <div class="dl-info">
                                     <span class="dl-title"><?php echo htmlspecialchars($beat['track_title']); ?></span>
-                                    <span class="dl-meta">
-                                        <span style="color:#2bee79">Standard License</span> • 
-                                        <?php echo htmlspecialchars($beat['bpm']); ?> BPM • 
-                                        Key: <?php echo htmlspecialchars($beat['track_key']); ?>
-                                    </span>
+                                    <div class="dl-meta">
+                                        <span class="license-pill"><?php echo $licenseName; ?></span>
+                                        <span><?php echo date('M d, Y', strtotime($beat['purchase_date'])); ?></span>
+                                    </div>
                                 </div>
                                 <div class="dl-actions">
                                     <a href="<?php echo htmlspecialchars($dl_link); ?>" class="btn-download" download>
@@ -373,28 +390,29 @@ if (isset($conn) && !$conn->connect_error) {
 
             <div id="library-tab" style="display:none;">
                 <div class="content-box">
-                    <h2 style="color:white; font-size:24px; margin-bottom:20px;">My Library</h2>
+                    <h2 class="section-title">My Collection</h2>
                     <?php if(empty($purchased_beats)): ?>
-                        <p style="color:#888;">No beats found. <a href="tracks.php" style="color:#2bee79;">Go shop!</a></p>
+                        <p style="color:#666; text-align:center; padding: 40px;">No beats found. <a href="tracks.php" style="color:#2bee79;">Go shop!</a></p>
                     <?php else: ?>
                         <?php foreach($purchased_beats as $beat): ?>
                             <?php 
                                 $img = !empty($beat['cover_image']) ? $beat['cover_image'] : 'https://via.placeholder.com/60';
                                 $dl_link = "download.php?track=" . urlencode($beat['track_title']);
+                                $licenseName = isset($beat['license_type']) ? ucfirst($beat['license_type']) : 'Standard';
                             ?>
                             <div class="download-item">
-                                <img src="<?php echo htmlspecialchars($img); ?>" alt="Cover" class="dl-img" onerror="this.src='https://via.placeholder.com/60'">
+                                <img src="<?php echo htmlspecialchars($img); ?>" alt="Cover" class="dl-img">
                                 <div class="dl-info">
                                     <span class="dl-title"><?php echo htmlspecialchars($beat['track_title']); ?></span>
-                                    <span class="dl-meta">
-                                        Standard License • 
-                                        Key: <?php echo htmlspecialchars($beat['track_key']); ?> • 
-                                        BPM: <?php echo htmlspecialchars($beat['bpm']); ?>
-                                    </span>
+                                    <div class="dl-meta">
+                                        <span class="license-pill"><?php echo $licenseName; ?></span>
+                                        <span><?php echo htmlspecialchars($beat['bpm']); ?> BPM</span> • 
+                                        <span>Key: <?php echo htmlspecialchars($beat['track_key']); ?></span>
+                                    </div>
                                 </div>
                                 <div class="dl-actions">
                                     <a href="<?php echo htmlspecialchars($dl_link); ?>" class="btn-download">
-                                        <i class="fa fa-download"></i> Download
+                                        <i class="fa fa-cloud-download"></i> Download Files
                                     </a>
                                 </div>
                             </div>
@@ -405,31 +423,51 @@ if (isset($conn) && !$conn->connect_error) {
 
             <div id="settings-tab" style="display:none;">
                 <div class="content-box">
-                    <h4 style="color:white; margin-bottom: 25px;">Edit Profile</h4>
+                    <h4 class="section-title">Account Settings</h4>
                     
                     <form method="POST">
-                        <div style="margin-bottom: 20px;">
-                            <label style="color:#888; font-size:14px; display:block; margin-bottom:8px;">Email Address</label>
-                            <input type="email" name="email" value="<?php echo htmlspecialchars($email); ?>" required>
-                        </div>
-
-                        <div style="border-top:1px solid #222; margin:25px 0; padding-top:25px;">
-                            <h5 style="color:#2bee79; margin-bottom:15px; font-size:16px;">Change Password <span style="font-size:12px; color:#666;">(Leave blank to keep current)</span></h5>
-                            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
-                                <input type="password" name="new_password" placeholder="New Password">
-                                <input type="password" name="confirm_password" placeholder="Confirm Password">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="settings-group">
+                                    <label>Username</label>
+                                    <input type="text" class="form-control" value="<?php echo htmlspecialchars($user); ?>" disabled style="opacity:0.5; cursor:not-allowed;">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="settings-group">
+                                    <label>Email Address</label>
+                                    <input type="email" name="email" class="form-control" value="<?php echo htmlspecialchars($email); ?>" required>
+                                </div>
                             </div>
                         </div>
 
-                        <div style="background:#151515; padding:20px; border-radius:8px; border:1px solid #333;">
-                            <label style="color:white; font-weight:bold; display:block; margin-bottom:5px;">Current Password <span style="color:#ff4757">*</span></label>
-                            <p style="color:#666; font-size:12px; margin-bottom:10px;">Enter your current password to save changes.</p>
-                            <input type="password" name="current_password" required placeholder="Enter password to confirm">
+                        <div style="border-top:1px solid #222; margin:25px 0; padding-top:25px;">
+                            <h5 style="color:white; margin-bottom:20px; font-size:16px;">Security & Password</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="settings-group">
+                                        <label>New Password (Optional)</label>
+                                        <input type="password" name="new_password" class="form-control" placeholder="New Password">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="settings-group">
+                                        <label>Confirm Password</label>
+                                        <input type="password" name="confirm_password" class="form-control" placeholder="Confirm Password">
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
-                        <div style="margin-top:20px; text-align:right;">
-                            <button type="submit" name="update_profile" 
-                                    style="background:#2bee79; color:#000; font-weight:bold; border:none; padding:12px 30px; border-radius:30px; cursor:pointer;">
+                        <div style="background:#151515; padding:20px; border-radius:8px; border:1px solid #333; margin-top:10px;">
+                            <div class="settings-group" style="margin-bottom:0;">
+                                <label style="color:#2bee79; font-weight:bold;">Current Password (Required)</label>
+                                <input type="password" name="current_password" required class="form-control" placeholder="Enter password to confirm changes">
+                            </div>
+                        </div>
+
+                        <div style="margin-top:30px; text-align:right;">
+                            <button type="submit" name="update_profile" class="btn-save">
                                 Save Changes
                             </button>
                         </div>
@@ -463,5 +501,12 @@ function showTab(tabName) {
         document.getElementById('library-tab').style.display = 'block';
         document.getElementById('btn-library').classList.add('active');
     }
+}
+
+// Auto-switch tab from URL
+const urlParams = new URLSearchParams(window.location.search);
+const tab = urlParams.get('tab');
+if (tab) {
+    showTab(tab);
 }
 </script>
