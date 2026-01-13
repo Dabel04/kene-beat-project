@@ -192,15 +192,35 @@
 <script>
 document.addEventListener('DOMContentLoaded', () => {
 
-    // --- 1. MOBILE MENU ---
+    // --- 1. MOBILE MENU (Updated) ---
     const mobileBtn = document.getElementById('mobile-menu-btn');
     const navLinks = document.getElementById('nav-links');
-    if(mobileBtn){
-        mobileBtn.addEventListener('click', () => {
+    
+    if(mobileBtn && navLinks){
+        // Toggle Logic
+        mobileBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // Stop click from bubbling to document immediately
             navLinks.classList.toggle('active');
             const icon = mobileBtn.querySelector('i');
-            if(navLinks.classList.contains('active')){ icon.classList.remove('fa-bars'); icon.classList.add('fa-times'); } 
-            else { icon.classList.remove('fa-times'); icon.classList.add('fa-bars'); }
+            if(navLinks.classList.contains('active')){ 
+                icon.classList.remove('fa-bars'); 
+                icon.classList.add('fa-times'); 
+            } else { 
+                icon.classList.remove('fa-times'); 
+                icon.classList.add('fa-bars'); 
+            }
+        });
+
+        // Close on Click Outside Logic (NEW)
+        document.addEventListener('click', (e) => {
+            if (navLinks.classList.contains('active') && !navLinks.contains(e.target) && !mobileBtn.contains(e.target)) {
+                navLinks.classList.remove('active');
+                const icon = mobileBtn.querySelector('i');
+                if(icon) {
+                    icon.classList.remove('fa-times');
+                    icon.classList.add('fa-bars');
+                }
+            }
         });
     }
 
@@ -420,9 +440,19 @@ document.addEventListener('DOMContentLoaded', () => {
     if (closeCartBtn) closeCartBtn.addEventListener('click', () => cartSidebar.classList.remove('open'));
     if (checkoutBtn) checkoutBtn.addEventListener('click', () => { cart.length > 0 ? window.location.href = 'checkout.php' : alert("Cart is empty!"); });
     
+    // --- 5. CART CLICK OUTSIDE LOGIC (Updated to work with Menu) ---
+    document.addEventListener('click', (event) => {
+        // Cart Close
+        if (cartSidebar.classList.contains('open') && 
+            !cartSidebar.contains(event.target) && 
+            !openCartBtn.contains(event.target)) {
+            cartSidebar.classList.remove('open');
+        }
+    });
+
     initCart();
 
-    // --- 5. BEAT LICENSE MODAL (Specific to Beats) ---
+    // --- 6. BEAT LICENSE MODAL ---
     const LICENSES = {
         'basic': { name: 'Basic Lease', price: 25.00, features: ['MP3 File (320kbps)', '5,000 Streams Cap', 'Non-Profit Use', '1 Commercial Video', 'Instant Download'], recommended: false },
         'premium': { name: 'Premium Lease', price: 99.99, features: ['WAV + MP3 Files', '500,000 Streams Cap', 'For Profit Use', '10 Commercial Videos', 'Tracked Out Stems (+$50)'], recommended: true },
@@ -434,7 +464,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeOptionsModalBtn = document.getElementById('close-options-modal');
     let currentTrackData = {};
 
-    // Only attach to buttons that are NOT kits (kits usually have onclick="addToCart")
     document.querySelectorAll('.open-options-btn').forEach(button => {
         button.addEventListener('click', () => {
             currentTrackData = {

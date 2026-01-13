@@ -3,7 +3,6 @@ session_start();
 header('Content-Type: application/json');
 include '../db_connect.php';
 
-// 1. Check Login
 if (!isset($_SESSION['user_id'])) {
     echo json_encode(['success' => false, 'message' => 'User not logged in']);
     exit;
@@ -13,37 +12,31 @@ $user_id = intval($_SESSION['user_id']);
 $input = json_decode(file_get_contents('php://input'), true);
 $cart = isset($input['cart']) ? $input['cart'] : [];
 
-// 2. Transaction Start
 $conn->begin_transaction();
 
 try {
-    // 3. Wipe Old Cart
+    // 1. Clear previous cart
     $conn->query("DELETE FROM cart WHERE user_id = $user_id");
 
-    // 4. Insert New Items
+    // 2. Insert new items
     if (!empty($cart)) {
-        // Updated Query: Includes product_type
         $stmt = $conn->prepare("INSERT INTO cart (user_id, track_id, license_type, product_type) VALUES (?, ?, ?, ?)");
         
         foreach ($cart as $item) {
-            $id_val = isset($item['id']) ? $item['id'] : 0;
-            
-            // Clean ID (remove "kit_" prefix if present in string)
-            $raw_id = str_replace('kit_', '', $id_val);
+            // Clean ID: "kit_5" becomes 5
+            $raw_id = str_replace('kit_', '', $item['id']);
             $track_id = intval($raw_id);
             
-            // Determine Type
+            // Logic: Is it a Kit?
             $type = (isset($item['type']) && $item['type'] === 'kit') ? 'kit' : 'beat';
-
-            // Determine License
+            
+            // License logic
             $license = 'basic';
             if ($type === 'kit') {
                 $license = 'royalty-free';
             } else {
-                if (!empty($item['licenseKey'])) $license = $item['licenseKey'];
-                elseif (!empty($item['license_type'])) $license = $item['license_type'];
+                $license = isset($item['licenseKey']) ? $item['licenseKey'] : 'basic';
             }
-            $license = strtolower($license);
 
             $stmt->bind_param("iiss", $user_id, $track_id, $license, $type);
             $stmt->execute();
@@ -51,7 +44,6 @@ try {
         $stmt->close();
     }
     
-    // 5. Commit
     $conn->commit();
     echo json_encode(['success' => true]);
 

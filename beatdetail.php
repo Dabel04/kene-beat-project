@@ -339,12 +339,13 @@ $relatedStmt->close();
             });
         });
 
-        // --- 5. CART LOGIC (WITH DATABASE SYNC) ---
+        // --- 5. CART LOGIC (CONNECTED TO FOOTER) ---
         function addToCartHandler(redirect = false) {
             let licenseName = 'Basic Lease';
             if(currentLicenseType === 'premium') licenseName = 'Premium Lease';
             if(currentLicenseType === 'exclusive') licenseName = 'Exclusive Rights';
 
+            // Build the item object
             const item = {
                 id: trackData.id,
                 name: trackData.title,
@@ -352,56 +353,23 @@ $relatedStmt->close();
                 price: currentPrice,
                 licenseKey: currentLicenseType,
                 licenseName: licenseName,
-                img: trackData.cover
+                img: trackData.cover,
+                type: 'beat' // Important: Tells the system this is a Beat, not a Kit
             };
 
-            // 1. Save to LocalStorage
-            let cart = JSON.parse(localStorage.getItem('cartItems')) || [];
-            
-            // Check for duplicates
-            const existingIndex = cart.findIndex(c => c.id === item.id);
-            if(existingIndex !== -1) {
-                cart[existingIndex] = item; // Update existing
-            } else {
-                cart.push(item);
-            }
-            
-            localStorage.setItem('cartItems', JSON.stringify(cart));
-            
-            // 2. CRITICAL FIX: SYNC WITH SERVER IMMEDIATELY
-            const isLoggedIn = <?php echo isset($_SESSION['user_id']) ? 'true' : 'false'; ?>;
-            
-            if(isLoggedIn) {
-                fetch('includes/save_cart.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ cart: cart })
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if(redirect) {
-                        window.location.href = 'checkout.php';
-                    } else {
-                        // Open Cart Sidebar via Footer trigger
-                        const openCartBtn = document.getElementById('open-cart-btn');
-                        if(openCartBtn) openCartBtn.click();
-                        
-                        // Force Footer to reload from LocalStorage
-                        if(typeof initCart === 'function') initCart(); 
-                    }
-                })
-                .catch(err => {
-                    console.error("Sync Error:", err);
-                    if(redirect) window.location.href = 'checkout.php'; // Fail safe
-                });
-            } else {
-                // Not logged in
+            // Call the Global function from footer.php
+            if (typeof window.addToCart === 'function') {
+                window.addToCart(item); // This updates the sidebar instantly
+                
                 if(redirect) {
-                    window.location.href = 'checkout.php';
-                } else {
-                    const openCartBtn = document.getElementById('open-cart-btn');
-                    if(openCartBtn) openCartBtn.click();
+                    // Small delay to let the cart save, then go to checkout
+                    setTimeout(() => {
+                        window.location.href = 'checkout.php';
+                    }, 300);
                 }
+            } else {
+                console.error("Footer Cart function not found.");
+                alert("Added to cart! Please refresh page to view."); // Fallback
             }
         }
 

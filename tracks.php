@@ -21,7 +21,7 @@ if ($search !== '') {
     $types .= 'ss';
 }
 
-// 2. Tag Filter (Server-Side)
+// 2. Tag Filter
 if ($filterTag !== '' && $filterTag !== 'all') {
     $whereClauses[] = "tags LIKE ?";
     $tagParam = '%' . $filterTag . '%';
@@ -62,7 +62,6 @@ $result = $stmt->get_result();
 
 $tracksArray = [];
 while ($row = $result->fetch_assoc()) {
-    // SECURITY FIX: Send Tagged File
     $previewPath = !empty($row['tagged_file']) ? $row['tagged_file'] : $row['audio_file'];
 
     $tracksArray[] = array(
@@ -108,40 +107,88 @@ sort($allTags);
     }
     .catalog-header h1 { color: white; font-weight: 800; text-transform: uppercase; letter-spacing: -1px; margin-bottom: 10px; }
 
-    /* Filter Bar */
+    /* --- FILTER BAR --- */
     .filter-container {
         background: #111;
-        padding: 20px;
+        padding: 15px 20px;
         border-bottom: 1px solid #222;
         position: sticky;
         top: var(--nav-height);
         z-index: 900;
+        width: 100%;
     }
-    .filter-row { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; max-width: 1200px; margin: 0 auto; align-items: center; }
+    
+    .filter-row { display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto; flex-wrap: wrap; gap: 15px; }
+    .filter-group { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 
-    .search-box { background: #000; border: 1px solid #333; color: white; padding: 10px 20px; border-radius: 30px; width: 300px; outline: none; transition: 0.3s; }
+    .search-box { background: #000; border: 1px solid #333; color: white; padding: 8px 20px; border-radius: 30px; width: 250px; outline: none; transition: 0.3s; font-size: 14px; }
     .search-box:focus { border-color: #2bee79; }
 
     .filter-link { 
         background: #000; border: 1px solid #333; color: #888; 
-        padding: 8px 20px; border-radius: 30px; cursor: pointer; 
-        transition: 0.3s; font-size: 14px; text-transform: uppercase; 
+        padding: 6px 15px; border-radius: 30px; cursor: pointer; 
+        transition: 0.3s; font-size: 13px; text-transform: uppercase; 
         font-weight: 600; text-decoration: none; display: inline-block;
     }
     .filter-link:hover, .filter-link.active { background: #2bee79; color: black; border-color: #2bee79; text-decoration: none; }
 
-    .tracks-grid-container { padding: 50px 0; min-height: 60vh; }
+    .view-btn { background: #000; border: 1px solid #333; color: #888; width: 35px; height: 35px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; }
+    .view-btn:hover, .view-btn.active { color: #2bee79; border-color: #2bee79; }
+
+    .tracks-grid-container { padding: 40px 0; min-height: 60vh; }
+
+    /* --- GRID VIEW --- */
+    .tracks-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 25px; }
+    
+    /* Play Button Logic: Hidden by default, Visible on Hover OR Playing */
+    .track-overlay { opacity: 0; transition: 0.3s; }
+    .track-card:hover .track-overlay { opacity: 1; }
+    .track-card.playing .track-overlay { opacity: 1 !important; background: rgba(0,0,0,0.5); }
+
+    /* --- MOBILE GRID (2 Columns) --- */
+    @media (max-width: 768px) {
+        .filter-container { position: relative; top: 0; z-index: 10; padding: 10px 15px; }
+        
+        .tracks-grid:not(.list-view) {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .tracks-grid:not(.list-view) .track-image { height: 160px; }
+        .tracks-grid:not(.list-view) .track-title { font-size: 13px; margin-bottom: 2px; }
+        .tracks-grid:not(.list-view) .track-artist { font-size: 11px; }
+        
+        /* Stats (Price/BPM) visible on mobile grid */
+        .tracks-grid:not(.list-view) .track-meta {
+            display: flex; flex-direction: column; gap: 6px; margin-top: 5px;
+        }
+        .tracks-grid:not(.list-view) .track-stats {
+            display: flex !important; justify-content: space-between; width: 100%; font-size: 11px; color: #ccc;
+        }
+        .tracks-grid:not(.list-view) .track-price {
+            width: 100%; padding: 6px 0; font-size: 12px; justify-content: center; border-radius: 4px;
+        }
+    }
+
+    /* --- LIST VIEW --- */
+    .tracks-grid.list-view { display: flex; flex-direction: column; gap: 10px; }
+    .tracks-grid.list-view .track-card { display: flex; flex-direction: row; align-items: center; padding: 10px 15px; height: auto; background: #111; border: 1px solid #222; }
+    .tracks-grid.list-view .track-image { width: 60px; height: 60px; flex-shrink: 0; margin-right: 20px; border-radius: 6px; }
+    .tracks-grid.list-view .track-info { padding: 0; flex-grow: 1; display: flex; align-items: center; justify-content: space-between; }
+    .tracks-grid.list-view .track-info > div:first-child { display: flex; flex-direction: column; justify-content: center; margin-right: auto; }
+    .tracks-grid.list-view .track-title { font-size: 16px; margin-bottom: 3px; }
+    .tracks-grid.list-view .track-meta { margin-top: 0; padding-top: 0; border-top: none; display: flex; align-items: center; gap: 25px; }
+    .tracks-grid.list-view .track-stats { gap: 15px; }
+    .tracks-grid.list-view .track-stats .stat:first-child { display: none; } 
+    .tracks-grid.list-view .track-price { width: auto; padding: 8px 20px; border-radius: 20px; display: flex; align-items: center; gap: 8px; font-size: 13px; }
+    .tracks-grid.list-view .track-price::before { content: attr(data-price-formatted); font-weight: 700; }
 
     /* Pagination */
-    .pagination-wrapper { display: flex; justify-content: center; gap: 10px; margin-top: 50px; }
-    .page-link { 
-        background: #111; color: white; padding: 10px 16px; 
-        border-radius: 8px; text-decoration: none; font-weight: bold; border: 1px solid #333;
-    }
+    .pagination-wrapper { display: flex; justify-content: center; gap: 8px; margin-top: 40px; }
+    .page-link { background: #111; color: white; padding: 8px 14px; border-radius: 6px; text-decoration: none; font-weight: bold; border: 1px solid #333; font-size: 14px; }
     .page-link:hover, .page-link.active { background: #2bee79; color: black; border-color: #2bee79; }
     .page-link.disabled { opacity: 0.5; pointer-events: none; }
 
-    /* Grid Items */
     .track-link { text-decoration: none; color: inherit; display: block; }
     .track-link:hover { text-decoration: none; color: #2bee79; }
     .track-tags-list { display: flex; gap: 5px; flex-wrap: wrap; margin: 8px 0; }
@@ -157,18 +204,27 @@ sort($allTags);
 
 <div class="filter-container">
     <div class="filter-row">
-        <form action="" method="GET" style="display:flex; align-items:center;">
-            <input type="text" name="search" value="<?php echo htmlspecialchars($search); ?>" class="search-box" placeholder="Search beats...">
-            <?php if($filterTag): ?><input type="hidden" name="tag" value="<?php echo htmlspecialchars($filterTag); ?>"><?php endif; ?>
-        </form>
+        <div class="filter-group">
+            <form action="" method="GET" style="display:flex; align-items:center;">
+                <input type="text" name="search" value="<?php echo htmlspecialchars($search); ?>" class="search-box" placeholder="Search beats...">
+                <?php if($filterTag): ?><input type="hidden" name="tag" value="<?php echo htmlspecialchars($filterTag); ?>"><?php endif; ?>
+            </form>
 
-        <a href="?search=<?php echo urlencode($search); ?>" class="filter-link <?php echo ($filterTag == '') ? 'active' : ''; ?>">All</a>
-        <?php foreach($allTags as $t): ?>
-            <a href="?tag=<?php echo urlencode($t); ?>&search=<?php echo urlencode($search); ?>" 
-               class="filter-link <?php echo ($filterTag == $t) ? 'active' : ''; ?>">
-               <?php echo ucfirst($t); ?>
-            </a>
-        <?php endforeach; ?>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <a href="?search=<?php echo urlencode($search); ?>" class="filter-link <?php echo ($filterTag == '') ? 'active' : ''; ?>">All</a>
+                <?php foreach($allTags as $t): ?>
+                    <a href="?tag=<?php echo urlencode($t); ?>&search=<?php echo urlencode($search); ?>" 
+                       class="filter-link <?php echo ($filterTag == $t) ? 'active' : ''; ?>">
+                       <?php echo ucfirst($t); ?>
+                    </a>
+                <?php endforeach; ?>
+            </div>
+        </div>
+
+        <div class="filter-group">
+            <button class="view-btn active" id="btn-grid-view" title="Grid View"><i class="fa fa-th-large"></i></button>
+            <button class="view-btn" id="btn-list-view" title="List View"><i class="fa fa-list"></i></button>
+        </div>
     </div>
 </div>
 
@@ -199,12 +255,31 @@ sort($allTags);
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. DATA FROM PHP
     const tracksData = <?php echo json_encode($tracksArray); ?>;
     const gridContainer = document.getElementById('tracks-grid');
-    const isLoggedIn = <?php echo isset($_SESSION['user_id']) ? 'true' : 'false'; ?>;
+    const btnGridView = document.getElementById('btn-grid-view');
+    const btnListView = document.getElementById('btn-list-view');
 
-    // 2. RENDER FUNCTION
+    function setView(view) {
+        if (view === 'list') {
+            gridContainer.classList.add('list-view');
+            btnListView.classList.add('active');
+            btnGridView.classList.remove('active');
+            localStorage.setItem('tracksView', 'list');
+        } else {
+            gridContainer.classList.remove('list-view');
+            btnGridView.classList.add('active');
+            btnListView.classList.remove('active');
+            localStorage.setItem('tracksView', 'grid');
+        }
+    }
+
+    const savedView = localStorage.getItem('tracksView') || 'grid';
+    setView(savedView);
+
+    if(btnGridView) btnGridView.addEventListener('click', () => setView('grid'));
+    if(btnListView) btnListView.addEventListener('click', () => setView('list'));
+
     function renderTracks(data) {
         gridContainer.innerHTML = '';
         if(data.length === 0) {
@@ -220,23 +295,26 @@ document.addEventListener('DOMContentLoaded', () => {
                     '</div>';
             }
 
+            const priceFormatted = `$${track.price.toFixed(0)}`;
+
             const cardHTML = `
                 <div class="track-card">
-                    <div class="track-image">
-                        <a href="beatdetail.php?id=${track.id}" class="track-link">
-                            <img src="${track.cover}" alt="${track.title}" onerror="this.src='https://via.placeholder.com/300'">
-                        </a>
+                    <div class="track-image js-play-track" style="cursor:pointer">
+                        <img src="${track.cover}" alt="${track.title}" loading="lazy" onerror="this.src='https://via.placeholder.com/300'">
                         <div class="track-overlay">
-                            <div class="play-button js-play-track"><i class="fa fa-play"></i></div>
+                            <div class="play-button"><i class="fa fa-play"></i></div>
                         </div>
                     </div>
+                    
                     <div class="track-info">
-                        <a href="beatdetail.php?id=${track.id}" class="track-link"><h3 class="track-title">${track.title}</h3></a>
-                        <p class="track-artist">${track.producer}</p>
-                        ${tagsHTML}
+                        <div>
+                            <a href="beatdetail.php?id=${track.id}" class="track-link"><h3 class="track-title">${track.title}</h3></a>
+                            <p class="track-artist">${track.producer}</p>
+                            ${tagsHTML}
+                        </div>
                         <div class="track-meta">
                             <div class="track-stats">
-                                <div class="stat"><i class="fa fa-money"></i><span>$${track.price.toFixed(0)}</span></div>
+                                <div class="stat"><i class="fa fa-money"></i><span>${priceFormatted}</span></div>
                                 <div class="stat"><i class="fa fa-tachometer"></i><span>${track.bpm} BPM</span></div>
                             </div>
                             <button class="track-price js-add-cart" 
@@ -244,7 +322,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                 data-name="${track.title}" 
                                 data-producer="${track.producer}" 
                                 data-img="${track.cover}" 
-                                data-price="${track.price}">
+                                data-price="${track.price}"
+                                data-price-formatted="${priceFormatted}">
                                 <i class="fa fa-shopping-cart"></i>
                             </button>
                         </div>
@@ -256,9 +335,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 3. LISTENERS
     gridContainer.addEventListener('click', (e) => {
-        // Play
+        // Play Trigger
         const playBtn = e.target.closest('.js-play-track');
         if (playBtn) {
             e.preventDefault(); e.stopPropagation();
@@ -268,7 +346,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Add to Cart
+        // Cart Trigger
         const cartBtn = e.target.closest('.js-add-cart');
         if (cartBtn) {
             e.preventDefault(); e.stopPropagation();
@@ -276,81 +354,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 id: cartBtn.dataset.id, name: cartBtn.dataset.name, 
                 producer: cartBtn.dataset.producer, img: cartBtn.dataset.img
             };
-            openCartModal(trackData);
+
+            if(typeof window.openOptionsModal === 'function') {
+                 window.openOptionsModal(trackData);
+            } else {
+                 // Fallback
+                 const footerBtn = document.querySelector(`.open-options-btn[data-id="${trackData.id}"]`);
+                 if(footerBtn) footerBtn.click();
+                 else if(typeof window.addToCart === 'function') {
+                     window.addToCart({
+                        ...trackData,
+                        price: parseFloat(cartBtn.dataset.price),
+                        licenseKey: 'basic', licenseName: 'Basic Lease', type: 'beat'
+                     });
+                 }
+            }
         }
     });
-
-    // Helper: Open Cart Modal (Matching footer.php options)
-    function openCartModal(trackData) {
-        const modal = document.getElementById('options-modal-overlay');
-        const modalTitle = document.getElementById('modal-track-name');
-        const optionsContainer = document.getElementById('options-container');
-
-        if(modal && optionsContainer) {
-            modalTitle.innerHTML = `Select License: <span style="color:#2bee79">${trackData.name}</span>`;
-            optionsContainer.innerHTML = ''; 
-
-            // UPDATED LICENSES TO MATCH HOME/FOOTER
-            const LICENSES = {
-                'basic': { 
-                    name: 'Basic Lease', 
-                    price: 25.00, 
-                    features: ['MP3 File (320kbps)', '5,000 Streams Cap', 'Non-Profit Use', '1 Commercial Video', 'Instant Download'],
-                    recommended: false
-                },
-                'premium': { 
-                    name: 'Premium Lease', 
-                    price: 99.99, 
-                    features: ['WAV + MP3 Files', '500,000 Streams Cap', 'For Profit Use', '10 Commercial Videos', 'Tracked Out Stems (+$50)'],
-                    recommended: true
-                },
-                'exclusive': { 
-                    name: 'Exclusive Rights', 
-                    price: 500.00, 
-                    features: ['MP3 + WAV + Stems', 'Unlimited Streams', 'Unlimited Profits', 'Radio Broadcasting', 'Ownership Transferred'],
-                    recommended: false
-                }
-            };
-            
-            ['basic', 'premium', 'exclusive'].forEach(key => {
-                const license = LICENSES[key];
-                const div = document.createElement('div');
-                div.className = 'license-option-card';
-                div.innerHTML = `
-                    ${license.recommended ? '<div class="recommended-badge">Best Value</div>' : ''}
-                    <div class="license-name">${license.name}</div>
-                    <div class="license-price">$${license.price.toFixed(0)}</div>
-                    <ul class="license-features">${license.features.map(f => `<li><i class="fa fa-check"></i> ${f}</li>`).join('')}</ul>
-                    <div class="select-label">Select Plan</div>
-                `;
-                div.onclick = () => {
-                    // 1. Get Cart
-                    let cart = JSON.parse(localStorage.getItem('cartItems')) || [];
-                    
-                    // 2. Add Item
-                    cart.push({ ...trackData, price: license.price, licenseKey: key, licenseName: license.name });
-                    
-                    // 3. Save Local
-                    localStorage.setItem('cartItems', JSON.stringify(cart));
-                    
-                    // 4. Sync Server (If Logged In)
-                    if(isLoggedIn) {
-                        fetch('includes/save_cart.php', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ cart: cart })
-                        }).catch(err => console.error("Sync failed"));
-                    }
-
-                    // 5. Update UI
-                    document.getElementById('open-cart-btn').click(); 
-                    modal.style.display = 'none';
-                };
-                optionsContainer.appendChild(div);
-            });
-            modal.style.display = 'flex';
-        }
-    }
 
     renderTracks(tracksData);
 });

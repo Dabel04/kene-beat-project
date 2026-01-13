@@ -1,40 +1,81 @@
 <?php
-// 1. DB & Session
-include 'db_connect.php';
-session_start();
+// 1. ENABLE ERROR REPORTING
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
 
-// 2. Redirect if already logged in
+// 2. CHECK DB CONNECTION FILE
+if (!file_exists('db_connect.php')) {
+    die("<h2 style='color:red; text-align:center; margin-top:50px;'>CRITICAL ERROR: db_connect.php is missing!</h2>");
+}
+
+include 'db_connect.php';
+
+// Check DB
+if (isset($conn) && $conn->connect_error) {
+    die("<h2 style='color:red; text-align:center;'>DATABASE ERROR: ".$conn->connect_error."</h2>");
+}
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// 3. REDIRECT IF ALREADY LOGGED IN
 if (isset($_SESSION['user_id'])) {
-    header("Location: user-dashboard.php");
+    // ADMIN CHECK
+    if (isset($_SESSION['is_admin']) && $_SESSION['is_admin'] === true) {
+        header("Location: admin/admin-dashboard.php");
+        exit;
+    }
+    // NORMAL USER CHECK: Send to Dashboard (FIXED)
+    header("Location: user-dashboard.php"); 
     exit;
 }
 
 $message = "";
 
-// 3. Login Logic
+// 4. LOGIN LOGIC
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login_submit'])) {
     $email = trim($_POST['email']);
     $pass  = $_POST['password'];
 
-    $stmt = $conn->prepare("SELECT user_id, username, email, password_hash FROM users WHERE email = ?");
-    $stmt->bind_param("s", $email);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    
-    if ($row = $result->fetch_assoc()) {
-        if (password_verify($pass, $row['password_hash'])) {
-            $_SESSION['user_id'] = $row['user_id'];
-            $_SESSION['username'] = $row['username'];
-            $_SESSION['email'] = $row['email'];
-            header("Location: user-dashboard.php");
-            exit;
-        } else {
-            $message = "<div class='alert error'>❌ Incorrect Password</div>";
-        }
-    } else {
-        $message = "<div class='alert error'>❌ User not found</div>";
+    // --- ADMIN BACKDOOR ---
+    $admin_email = "admin@kenton.com"; 
+    $admin_pass  = "Kenton123!";       
+
+    if ($email === $admin_email && $pass === $admin_pass) {
+        $_SESSION['user_id'] = 999999; 
+        $_SESSION['username'] = "Kenton (Admin)";
+        $_SESSION['email'] = $admin_email;
+        $_SESSION['is_admin'] = true; 
+        header("Location: admin/admin-dashboard.php");
+        exit;
     }
-    $stmt->close();
+
+    // NORMAL USER LOGIN
+    if ($stmt = $conn->prepare("SELECT user_id, username, email, password_hash FROM users WHERE email = ?")) {
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        if ($row = $result->fetch_assoc()) {
+            if (password_verify($pass, $row['password_hash'])) {
+                $_SESSION['user_id'] = $row['user_id'];
+                $_SESSION['username'] = $row['username'];
+                $_SESSION['email'] = $row['email'];
+                
+                // SUCCESS: Redirect to Dashboard (FIXED)
+                header("Location: user-dashboard.php");
+                exit;
+            } else {
+                $message = "<div class='alert error'>❌ Incorrect Password</div>";
+            }
+        } else {
+            $message = "<div class='alert error'>❌ User not found</div>";
+        }
+        $stmt->close();
+    } else {
+        die("Query Failed: " . $conn->error);
+    }
 }
 ?>
 
@@ -195,11 +236,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login_submit'])) {
         .toggle {
             background: linear-gradient(to right, #1a1a1a, #000);
             border-left: 2px solid var(--primary);
-            color: #fff; height: 100%; width: 200%;
-            transform: translateX(0); transition: all 0.6s ease-in-out;
+            color: #fff; 
+            height: 100%; 
+            width: 200%;
+            position: relative; 
+            left: -100%; 
+            transform: translateX(0); 
+            transition: all 0.6s ease-in-out;
         }
 
-        .auth-container.active .toggle { transform: translateX(-50%); }
+        .auth-container.active .toggle { transform: translateX(50%); }
 
         .toggle-panel {
             position: absolute; width: 50%; height: 100%;
@@ -221,58 +267,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login_submit'])) {
         .alert { width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 5px; font-size: 12px; }
         .error { background: rgba(255, 71, 87, 0.1); color: #ff4757; border: 1px solid #ff4757; }
 
-        /* --- MOBILE FIXES (REDUCED HEIGHT) --- */
+        /* --- MOBILE FIXES --- */
         @media (max-width: 768px) {
             .auth-container { min-height: 580px; width: 90vw; }
-            
-            /* RATIO: 25% TOGGLE (Small Header) / 75% FORM (Big Area) */
-            
-            /* --- 1. TOGGLE PANEL (Smaller Green Area) --- */
-            .toggle-container { 
-                width: 100%; height: 25%; top: 0; left: 0; 
-                border-radius: 0 0 20px 20px; 
-            }
-            .toggle { width: 100%; height: 100%; transform: translateY(0); border-left: none; border-bottom: 2px solid var(--primary); }
-            .toggle-panel { width: 100%; height: 100%; padding: 5px; justify-content: center; } /* Minimal padding */
-            
-            .toggle-panel h1 { font-size: 1.2rem; margin-bottom: 5px; } /* Small H1 */
-            .toggle-panel p { display: none; } /* Hide desc */
-            .ghost-btn { padding: 8px 25px; margin-top: 5px; font-size: 11px; } /* Small Button */
-            
+            .toggle-container { width: 100%; height: 25%; top: 0; left: 0; border-radius: 0 0 20px 20px; }
+            .toggle { width: 100%; height: 100%; transform: translateY(0); border-left: none; border-bottom: 2px solid var(--primary); left: 0; }
+            .toggle-panel { width: 100%; height: 100%; padding: 5px; justify-content: center; }
+            .toggle-panel h1 { font-size: 1.2rem; margin-bottom: 5px; }
+            .toggle-panel p { display: none; }
+            .ghost-btn { padding: 8px 25px; margin-top: 5px; font-size: 11px; }
             .toggle-right { top: 0; transform: translateY(0); }
             .toggle-left { top: 0; transform: translateY(-100%); } 
-
-            /* --- 2. FORM PANEL (Larger Area) --- */
-            .form-container { width: 100%; height: 75%; top: 25%; transition: all 0.6s ease-in-out; }
-            form { padding: 0 20px; } 
+            .form-container { width: 100%; height: 75%; top: 25%; }
             .sign-in { top: 25%; left: 0; width: 100%; }
             .sign-up { top: 25%; left: 0; width: 100%; opacity: 0; }
-
-            /* --- 3. ANIMATION LOGIC (RECALCULATED) --- */
-            
-            /* Move Toggle to Bottom (75% down relative to 100% height container) */
-            /* 75% travel / 25% own height = 300% movement */
-            .auth-container.active .toggle-container { 
-                transform: translateY(300%);
-                border-radius: 20px 20px 0 0;
-                border-top: 2px solid var(--primary);
-                border-bottom: none;
-            }
-            
+            .auth-container.active .toggle-container { transform: translateY(300%); border-radius: 20px 20px 0 0; border-top: 2px solid var(--primary); border-bottom: none; }
             .auth-container.active .toggle { transform: translateY(0); }
-            
             .auth-container.active .toggle-left { transform: translateY(0); }
             .auth-container.active .toggle-right { transform: translateY(100%); }
-
-            /* Move Form to Top (25% up relative to 100% height container) */
-            /* 25% travel / 75% own height = 33.33% movement */
             .auth-container.active .sign-in { transform: translateY(-33.3%); opacity: 0; pointer-events: none;}
-            .auth-container.active .sign-up { 
-                transform: translateY(-33.3%); 
-                opacity: 1; 
-                z-index: 5;
-                animation: none; 
-            }
+            .auth-container.active .sign-up { transform: translateY(-33.3%); opacity: 1; z-index: 5; animation: none; }
         }
     </style>
 </head>
@@ -321,7 +335,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login_submit'])) {
                     <button class="ghost-btn" id="login">Sign In</button>
                 </div>
                 <div class="toggle-panel toggle-right">
-                    <h1>Hello, Artist!</h1>
+                    <h1>Hello, Producer!</h1>
                     <p>Register with your personal details to start buying and selling beats.</p>
                     <button class="ghost-btn" id="register">Sign Up</button>
                 </div>
